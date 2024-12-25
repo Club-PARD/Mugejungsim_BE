@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create a Post</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        textarea, input[type="text"], button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn {
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .story-list {
+            margin-top: 20px;
+        }
+        .story {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        .story button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>Create a Post</h1>
+<a href="/main" class="btn">Back to Main</a>
+
+<!-- Post Details Section -->
+<h2>Post Details</h2>
+<form id="post-details-form">
+    <input type="text" id="post-title" placeholder="Enter Post Title">
+    <textarea id="post-description" placeholder="Enter Post Description"></textarea>
+    <button type="submit">Save Post Details</button>
+</form>
+
+<!-- Create Story Section -->
+<h2>Create Stories</h2>
+<form id="create-story-form" style="display: none;">
+    <textarea id="content" placeholder="Write story content..."></textarea>
+    <div>
+        <label><input type="radio" name="emoji" value="😊"> 😊</label>
+        <label><input type="radio" name="emoji" value="😂"> 😂</label>
+        <label><input type="radio" name="emoji" value="❤️"> ❤️</label>
+        <label><input type="radio" name="emoji" value="👍"> 👍</label>
+    </div>
+    <button type="submit">Add Story</button>
+</form>
+
+<!-- Story List Section -->
+<h2>Story List</h2>
+<div id="story-list" class="story-list">
+    <!-- Stories will appear here -->
+</div>
+
+<!-- Finalize Post Button -->
+<button id="finalize-post" style="display: none;">Post</button>
+
+<script>
+    let stories = [];
+    let postDetails = {};
+
+    const postDetailsForm = document.getElementById('post-details-form');
+    const createStoryForm = document.getElementById('create-story-form');
+    const storyList = document.getElementById('story-list');
+    const finalizePostButton = document.getElementById('finalize-post');
+
+    // Save post details
+    postDetailsForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const title = document.getElementById('post-title').value;
+        const description = document.getElementById('post-description').value;
+
+        if (!title || !description) {
+            alert('Please enter a title and description.');
+            return;
+        }
+
+        postDetails = { title, description };
+        postDetailsForm.style.display = 'none';
+        createStoryForm.style.display = 'block';
+        finalizePostButton.style.display = 'inline-block';
+    });
+
+    // Add a story
+    createStoryForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const content = document.getElementById('content').value;
+        const emoji = document.querySelector('input[name="emoji"]:checked')?.value;
+
+        if (!content || !emoji) {
+            alert('Please fill in all fields.');
+            return;
+        }
+
+        const story = { id: Date.now(), content, emoji };
+        stories.push(story);
+        updateStoryList();
+        createStoryForm.reset();
+    });
+
+    // Update the story list
+    function updateStoryList() {
+        storyList.innerHTML = '';
+        stories.forEach((story) => {
+            const storyElement = document.createElement('div');
+            storyElement.classList.add('story');
+            storyElement.innerHTML = `
+                <p>${story.content} ${story.emoji}</p>
+                <button onclick="editStory(${story.id})">Edit</button>
+                <button onclick="deleteStory(${story.id})">Delete</button>
+            `;
+            storyList.appendChild(storyElement);
+        });
+    }
+
+    // Edit a story
+    function editStory(id) {
+        const story = stories.find((s) => s.id === id);
+        if (!story) return;
+
+        const newContent = prompt('Edit content:', story.content);
+        const newEmoji = prompt('Edit emoji (😊, 😂, ❤️, 👍):', story.emoji);
+
+        if (newContent && newEmoji) {
+            story.content = newContent;
+            story.emoji = newEmoji;
+            updateStoryList();
+        }
+    }
+
+    // Delete a story
+    function deleteStory(id) {
+        stories = stories.filter((s) => s.id !== id);
+        updateStoryList();
+    }
+
+    // Finalize the post
+    finalizePostButton.addEventListener('click', () => {
+        if (stories.length === 0) {
+            alert('Add at least one story.');
+            return;
+        }
+
+        fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...postDetails, storyIds: stories.map(s => s.id) })
+        })
+
+                .then((response) => {
+                if (response.ok) {
+                    alert('Post created successfully!');
+                    window.location.href = '/main';
+                } else {
+                    alert('Failed to create post.');
+                }
+            });
+    });
+</script>
+</body>
+</html>

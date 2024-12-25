@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>View Posts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .post {
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Your Posts</h1>
+<div id="posts"></div>
+
+<script>
+    fetch('/api/posts')
+        .then(response => response.json())
+        .then(data => {
+            const postsDiv = document.getElementById('posts');
+            data.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('post');
+                postDiv.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.description}</p>
+                    <ul>
+                        ${post.stories.map(story => `<li>${story.content} ${story.emoji}</li>`).join('')}
+                    </ul>
+                `;
+                postsDiv.appendChild(postDiv);
+            });
+        });
+</script>
+</body>
+</html>
