@@ -6,36 +6,83 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .post-list {
+            margin-top: 20px;
         }
         .post {
             border: 1px solid #ddd;
-            margin-bottom: 10px;
+            border-radius: 5px;
             padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        #loading {
+            color: #007bff;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
 <h1>Your Posts</h1>
-<div id="posts"></div>
+<a href="/main" class="btn">Back to Main</a>
+
+<!-- Post List Section -->
+<h2>Post List</h2>
+<div id="post-list" class="post-list">
+    <!-- Posts will appear here -->
+</div>
+
+<p id="loading">Loading...</p>
 
 <script>
-    fetch('/api/posts')
-        .then(response => response.json())
-        .then(data => {
-            const postsDiv = document.getElementById('posts');
-            data.forEach(post => {
-                const postDiv = document.createElement('div');
-                postDiv.classList.add('post');
-                postDiv.innerHTML = `
+    const postList = document.getElementById('post-list');
+    const loadingIndicator = document.getElementById('loading');
+
+    // Load posts
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Fetching posts...');
+        fetch('/api/posts')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                console.log('Raw response:', response);
+                return response.json();
+            })
+            .then(posts => {
+                console.log('Posts data:', posts);
+                if (!Array.isArray(posts)) {
+                    throw new Error('Response is not an array');
+                }
+                postList.innerHTML = '';
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.classList.add('post');
+                    postElement.innerHTML = `
                     <h3>${post.title}</h3>
                     <p>${post.description}</p>
-                    <ul>
-                        ${post.stories.map(story => `<li>${story.content} ${story.emoji}</li>`).join('')}
-                    </ul>
+                    <button onclick="viewPost(${post.id})">View Stories</button>
                 `;
-                postsDiv.appendChild(postDiv);
+                    postList.appendChild(postElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching posts:', error.message);
+                alert('Failed to load posts: ' + error.message);
             });
-        });
+    });
+
+    function viewPost(postId) {
+        // Redirect to view_stories.html with the post ID
+        window.location.href = `/view_stories.html?postId=${postId}`;
+    }
 </script>
 </body>
 </html>

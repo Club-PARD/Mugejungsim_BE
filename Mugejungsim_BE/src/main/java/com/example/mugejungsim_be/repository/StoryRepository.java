@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findByUserId(Long userId);
+    List<Story> findByPostId(Long postId);
+
 }

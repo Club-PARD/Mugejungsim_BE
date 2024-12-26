@@ -17,40 +17,19 @@ public class StoryService {
 
     @Transactional
     public Story createStory(User user, String content, String emoji) {
+        if (content == null || emoji == null) {
+            throw new IllegalArgumentException("Content or emoji cannot be null.");
+        }
+
         Story story = new Story();
         story.setUser(user);
         story.setContent(content);
         story.setEmoji(emoji);
 
-        System.out.println("Saving story: " + story);
         return storyRepository.save(story);
     }
 
     public List<Story> getStoriesByUserId(Long userId) {
         return storyRepository.findByUserId(userId);
-    }
-
-    public Story updateStory(Long id, User user, String content, String emoji) {
-        Story story = storyRepository.findById(id).orElse(null);
-
-        if (story == null || !story.getUser().getId().equals(user.getId())) {
-            return null; // 스토리가 없거나 사용자 소유가 아닐 경우 null 반환
-        }
-
-        story.setContent(content);
-        story.setEmoji(emoji);
-
-        return storyRepository.save(story);
-    }
-
-    public boolean deleteStory(Long id, User user) {
-        Story story = storyRepository.findById(id).orElse(null);
-
-        if (story == null || !story.getUser().getId().equals(user.getId())) {
-            return false; // 스토리가 없거나 사용자 소유가 아닐 경우 false 반환
-        }
-
-        storyRepository.delete(story);
-        return true;
     }
 }

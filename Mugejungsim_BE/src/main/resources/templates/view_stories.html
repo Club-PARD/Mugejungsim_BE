@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>View Stories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .story-list {
+            margin-top: 20px;
+        }
+        .story {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        #loading {
+            color: #007bff;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .btn {
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<h1>Stories in Post</h1>
+<a href="/templates/view_posts.html" class="btn">Back to Posts</a>
+
+<!-- Story List Section -->
+<h2>Story List</h2>
+<div id="story-list" class="story-list">
+    <!-- Stories will appear here -->
+</div>
+
+<p id="loading">Loading...</p>
+
+<script>
+    const storyList = document.getElementById('story-list');
+    const loadingIndicator = document.getElementById('loading');
+
+    // Base URL for API
+    const baseUrl = '/api';
+
+    // Get postId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('postId');
+
+    if (!postId) {
+        alert('Post ID is missing!');
+        window.location.href = '/view_posts.html';
+    }
+
+    // Load stories for the specific post
+    document.addEventListener('DOMContentLoaded', () => {
+        loadingIndicator.style.display = 'block';
+        fetch(`${baseUrl}/posts/${postId}/stories`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(stories => {
+                if (!stories || stories.length === 0) {
+                    storyList.innerHTML = '<p>No stories found for this post.</p>';
+                    return;
+                }
+                storyList.innerHTML = '';
+                stories.forEach(story => {
+                    const storyElement = document.createElement('div');
+                    storyElement.classList.add('story');
+                    storyElement.innerHTML = `
+                <p><strong>Content:</strong> ${story.content}</p>
+                <p><strong>Emoji:</strong> ${story.emoji}</p>
+                <button onclick="editStory(${story.id})">Edit</button>
+                <button onclick="deleteStory(${story.id})">Delete</button>
+            `;
+                    storyList.appendChild(storyElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching stories:', error.message);
+                alert(`Failed to load stories: ${error.message}. Please try again later.`);
+            });
+
+
+    });
+
+    // Edit a story
+    function editStory(storyId) {
+        const newContent = prompt('Enter new content:');
+        const newEmoji = prompt('Enter new emoji (😊, 😂, ❤️, 👍):');
+
+        if (!newContent?.trim() || !newEmoji?.trim()) {
+            alert('Both content and emoji are required!');
+            return;
+        }
+
+        const updatedStory = { content: newContent, emoji: newEmoji };
+
+        fetch(`${baseUrl}/stories/${storyId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedStory),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update story.');
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('Story updated successfully!');
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error updating story:', error.message);
+                alert('Failed to update story: ' + error.message);
+            });
+    }
+
+    // Delete a story
+    function deleteStory(storyId) {
+        if (!confirm('Are you sure you want to delete this story?')) {
+            return;
+        }
+
+        fetch(`${baseUrl}/stories/${storyId}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete story.');
+                }
+                alert('Story deleted successfully!');
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error deleting story:', error.message);
+                alert('Failed to delete story: ' + error.message);
+            });
+    }
+</script>
+</body>
+</html>
