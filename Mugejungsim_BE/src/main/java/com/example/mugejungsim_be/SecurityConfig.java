@@ -6,16 +6,36 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Spring Security 설정 클래스
+ *
+ * 이 클래스는 OAuth2 인증 및 애플리케이션 보안 정책을 정의합니다.
+ * Swagger와의 연동을 위해 특정 경로는 인증 없이 접근 가능하도록 설정됩니다.
+ */
 @Configuration
 @SecurityRequirement(name = "OAuth2")
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
 
+    /**
+     * SecurityConfig 생성자
+     *
+     * @param customOAuth2UserService OAuth2 사용자 정보 서비스를 주입받음
+     */
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
         this.customOAuth2UserService = customOAuth2UserService;
     }
 
+    /**
+     * SecurityFilterChain 설정
+     *
+     * Spring Security의 주요 보안 정책을 정의합니다.
+     *
+     * @param http HttpSecurity 객체
+     * @return SecurityFilterChain 객체
+     * @throws Exception 설정 중 오류 발생 시 예외 처리
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -34,9 +54,9 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"
-                        ).permitAll()
-                        // 공용 페이지 허용
-                        .requestMatchers("/", "/login").permitAll()
+                        ).permitAll() // 인증 없이 접근 가능
+
+                        .requestMatchers("/", "/login").permitAll() // 홈 및 로그인 페이지 접근 허용
                         // 특정 경로 인증 필요
                         .requestMatchers("/main", "/api/**").authenticated()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증 필요

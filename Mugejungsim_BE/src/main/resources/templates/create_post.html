@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
-    <title>Create a Post with Stories</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
             background-color: #f4f4f9;
+            padding: 20px;
         }
-        h1, h2 {
-            color: #333;
-        }
-        textarea, input[type="text"], button {
+        textarea, input, select, button {
             display: block;
-            margin: 10px 0;
-            padding: 10px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
+            margin: 10px auto;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
@@ -24,161 +23,61 @@
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
         }
-        .btn {
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            margin: 10px 0;
-            display: inline-block;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-        .story-list {
-            margin-top: 20px;
-        }
-        .story {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #fff;
-        }
-        #loading {
-            color: #007bff;
-            font-weight: bold;
-            margin-top: 20px;
-            display: none;
-        }
     </style>
 </head>
 <body>
-<h1>Create a Post with Stories</h1>
-<a href="/main" class="btn">Back to Main</a>
-
-<!-- Create Story Section -->
-<h2>Create Stories</h2>
-<form id="create-story-form">
-    <textarea id="content" placeholder="Write story content..."></textarea>
-    <div>
-        <label><input type="radio" name="emoji" value="😊"> 😊</label>
-        <label><input type="radio" name="emoji" value="😂"> 😂</label>
-        <label><input type="radio" name="emoji" value="❤️"> ❤️</label>
-        <label><input type="radio" name="emoji" value="👍"> 👍</label>
-    </div>
-    <button type="submit">Add Story</button>
-</form>
-
-<!-- Story List Section -->
-<h2>Story List</h2>
-<div id="story-list" class="story-list">
-    <!-- Stories will appear here -->
-</div>
-
-<!-- Create Post Section -->
-<h2>Create a Post</h2>
+<h1>Create a New Post</h1>
 <form id="create-post-form">
-    <input type="text" id="post-title" placeholder="Post Title">
-    <textarea id="post-description" placeholder="Post Description"></textarea>
+    <input type="text" id="title" placeholder="Post Title" required>
+    <textarea id="description" placeholder="Post Description" required></textarea>
+    <input type="date" id="startDate" placeholder="Start Date" required>
+    <input type="date" id="endDate" placeholder="End Date" required>
+    <input type="text" id="location" placeholder="Location" required>
+    <select id="companion" required>
+        <option value="">Select Companion</option>
+        <option value="Alone">Alone</option>
+        <option value="Family">Family</option>
+        <option value="Friends">Friends</option>
+        <option value="Partner">Partner</option>
+    </select>
     <button type="submit">Create Post</button>
 </form>
 
-<p id="loading">Processing, please wait...</p>
-
 <script>
-    let stories = [];
-    const createStoryForm = document.getElementById('create-story-form');
-    const createPostForm = document.getElementById('create-post-form');
-    const storyList = document.getElementById('story-list');
-    const loadingIndicator = document.getElementById('loading');
-
-    // Add a story
-    createStoryForm.addEventListener('submit', (event) => {
+    document.getElementById('create-post-form').addEventListener('submit', async (event) => {
         event.preventDefault();
-        const content = document.getElementById('content').value.trim();
-        const emoji = document.querySelector('input[name="emoji"]:checked')?.value;
 
-        if (!content || !emoji) {
-            alert('Please fill in all fields.');
-            return;
+        const postData = {
+            title: document.getElementById('title').value.trim(),
+            description: document.getElementById('description').value.trim(),
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            location: document.getElementById('location').value.trim(),
+            companion: document.getElementById('companion').value.trim()
+        };
+
+        try {
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(postData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create post');
+            }
+
+            alert('Post created successfully!');
+            window.location.href = '/main';
+        } catch (error) {
+            console.error(error);
+            alert('Error creating post: ' + error.message);
         }
-
-        const storyData = { content, emoji };
-        loadingIndicator.style.display = 'block';
-
-        fetch('/api/stories', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(storyData),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save story.');
-                }
-                return response.json();
-            })
-            .then(savedStory => {
-                stories.push(savedStory);
-                updateStoryList();
-                createStoryForm.reset();
-            })
-            .catch(error => alert('Failed to save story: ' + error.message))
-            .finally(() => loadingIndicator.style.display = 'none');
-    });
-
-    // Update the story list
-    function updateStoryList() {
-        storyList.innerHTML = '';
-        stories.forEach((story) => {
-            const storyElement = document.createElement('div');
-            storyElement.classList.add('story');
-            storyElement.innerHTML = `
-                <p>${story.content} ${story.emoji}</p>
-            `;
-            storyList.appendChild(storyElement);
-        });
-    }
-
-    // Add a post
-    createPostForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const title = document.getElementById('post-title').value.trim();
-        const description = document.getElementById('post-description').value.trim();
-        const storyIds = Array.isArray(stories) ? stories.map(story => story.id) : [];
-
-        if (!title || !description || storyIds.length === 0) {
-            alert('Please fill in all fields and add at least one story.');
-            return;
-        }
-
-        const postData = { title, description, storyIds };
-        loadingIndicator.style.display = 'block';
-
-        fetch('/api/posts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(postData),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to create post.');
-                }
-                return response.json();
-            })
-            .then(savedPost => {
-                window.location.href = `/view_posts.html`;
-            })
-            .catch(error => alert('Failed to create post: ' + error.message))
-            .finally(() => loadingIndicator.style.display = 'none');
     });
 </script>
 </body>

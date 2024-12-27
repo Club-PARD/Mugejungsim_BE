@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Posts</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            padding: 20px;
             background-color: #f4f4f9;
-        }
-        h1, h2 {
-            color: #333;
-        }
-        .post-list {
-            margin-top: 20px;
         }
         .post {
             border: 1px solid #ddd;
@@ -21,66 +17,42 @@
             margin-bottom: 10px;
             background-color: #fff;
         }
-        #loading {
-            color: #007bff;
-            font-weight: bold;
-            margin-top: 20px;
-            display: none;
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 <h1>Your Posts</h1>
-<a href="/main" class="btn">Back to Main</a>
-
-<!-- Post List Section -->
-<h2>Post List</h2>
-<div id="post-list" class="post-list">
-    <!-- Posts will appear here -->
-</div>
-
-<p id="loading">Loading...</p>
+<div id="post-list"></div>
 
 <script>
-    const postList = document.getElementById('post-list');
-    const loadingIndicator = document.getElementById('loading');
-
-    // Load posts
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('Fetching posts...');
         fetch('/api/posts')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                console.log('Raw response:', response);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(posts => {
-                console.log('Posts data:', posts);
-                if (!Array.isArray(posts)) {
-                    throw new Error('Response is not an array');
-                }
-                postList.innerHTML = '';
-                posts.forEach(post => {
-                    const postElement = document.createElement('div');
-                    postElement.classList.add('post');
-                    postElement.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.description}</p>
-                    <button onclick="viewPost(${post.id})">View Stories</button>
-                `;
-                    postList.appendChild(postElement);
-                });
+                const postList = document.getElementById('post-list');
+                postList.innerHTML = posts.map(post => `
+                    <div class="post">
+                        <h3>${post.title}</h3>
+                        <p><strong>Description:</strong> ${post.description}</p>
+                        <p><strong>Location:</strong> ${post.location}</p>
+                        <button onclick="viewPost(${post.id})">View Stories</button>
+                    </div>
+                `).join('');
             })
-            .catch(error => {
-                console.error('Error fetching posts:', error.message);
-                alert('Failed to load posts: ' + error.message);
-            });
+            .catch(error => console.error('Error fetching posts:', error));
     });
 
     function viewPost(postId) {
-        // Redirect to view_stories.html with the post ID
         window.location.href = `/view_stories.html?postId=${postId}`;
     }
 </script>

@@ -1,26 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             text-align: center;
-        }
-        h1, h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        h1 span {
-            color: #007bff;
+            background-color: #f4f4f9;
+            padding: 20px;
         }
         img {
             border-radius: 50%;
@@ -30,47 +19,32 @@
             object-fit: cover;
             margin-bottom: 20px;
         }
-        p {
-            color: #555;
-            margin-bottom: 30px;
-        }
-        a {
+        h1 span {
             color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
         }
-        a:hover {
-            text-decoration: underline;
-        }
-        button {
+        .btn {
             padding: 10px 20px;
-            font-size: 16px;
             margin: 10px;
-            cursor: pointer;
             border: none;
             border-radius: 5px;
             background-color: #007bff;
             color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, transform 0.2s;
+            font-size: 16px;
+            cursor: pointer;
         }
-        button:hover {
+        .btn:hover {
             background-color: #0056b3;
-            transform: scale(1.05);
-        }
-        button:focus {
-            outline: none;
         }
     </style>
 </head>
 <body>
 <img th:src="${picture}" alt="Profile Picture">
-<h1>Welcome, <span th:text="${name}">Guest</span>!</h1>
+<h1>Welcome, <span th:text="${name}">User</span>!</h1>
 <p>Email: <span th:text="${email}"></span></p>
-<a href="/logout">Logout</a>
-
-<h2>What would you like to do?</h2>
-<button onclick="location.href='/create-post'">Create a Post</button>
-<button onclick="location.href='/view-posts'">View Posts</button>
+<a href="/logout" class="btn">Logout</a>
+<div>
+    <button class="btn" onclick="location.href='/create-post'">Create a Post</button>
+    <button class="btn" onclick="location.href='/view-posts'">View Posts</button>
+</div>
 </body>
 </html>
