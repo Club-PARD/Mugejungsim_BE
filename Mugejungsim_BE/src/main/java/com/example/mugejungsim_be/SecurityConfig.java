@@ -1,5 +1,6 @@
 package com.example.mugejungsim_be;
 
+import com.example.mugejungsim_be.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,8 +30,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/swagger-resources/**", "/webjars/**", "/css/**", "/js/**", "/images/**"
                         ).permitAll() // 공용 리소스 접근 허용
-                        .requestMatchers("/", "/login", "/oauth2/**").permitAll() // 홈, 로그인 페이지 접근 허용
-                        .anyRequest().authenticated() // 나머지 요청은 인증 필요
+                        .requestMatchers("/", "/login", "/oauth2/**", "/api/**").permitAll() // 추가: /api/** 경로 인증 없이 접근 허용
+                        .anyRequest().authenticated()
                 )
 
                 // OAuth2 로그인 설정

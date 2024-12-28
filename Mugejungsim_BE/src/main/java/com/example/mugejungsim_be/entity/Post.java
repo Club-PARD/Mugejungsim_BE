@@ -23,8 +23,8 @@ public class Post {
     @Column(nullable = false)
     private String title; // 게시물 제목
 
-    @Column(nullable = false)
-    private String description; // 게시물 설명
+    @Column(nullable = true) // 초기 생성 시 null 허용
+    private String bottle; // 게시물의 병 정보 (추가 필드)
 
     @Column(nullable = false)
     private String startDate; // 여행 시작일

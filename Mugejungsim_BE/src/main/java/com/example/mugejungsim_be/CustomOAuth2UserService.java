@@ -1,5 +1,6 @@
-package com.example.mugejungsim_be;
+package com.example.mugejungsim_be.service;
 
+import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.entity.User;
 import com.example.mugejungsim_be.repository.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -55,12 +56,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // 디버깅 로그: 저장된 사용자 정보 출력
             System.out.println("Saved User: " + user);
 
-            // 사용자 정보를 CustomOAuth2User로 반환
             return new CustomOAuth2User(oAuth2User.getAttributes(), user);
         } catch (Exception e) {
-            // 예외 출력
             e.printStackTrace();
-            throw e; // Spring Security가 처리하도록 예외 전달
+            throw e;
         }
     }
 }

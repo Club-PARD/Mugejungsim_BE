@@ -22,16 +22,16 @@
             cursor: grab;
             display: flex;
             align-items: center;
-            gap: 15px; /* 이미지와 텍스트 사이 간격 */
+            gap: 15px;
         }
         .story img {
-            max-width: 150px; /* 최대 너비 */
-            max-height: 150px; /* 최대 높이 */
+            max-width: 150px;
+            max-height: 150px;
             width: auto;
             height: auto;
-            border-radius: 5px; /* 둥근 모서리 */
-            object-fit: cover; /* 이미지를 영역에 맞게 자름 */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+            border-radius: 5px;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .story-details {
             flex: 1;
@@ -141,7 +141,7 @@
                         ${story.imagePath ? `<img src="${story.imagePath.startsWith('/') ? window.location.origin + story.imagePath : story.imagePath}" alt="Story Image">` : ''}
                         <div class="story-details">
                             <p><strong>Content:</strong> ${story.content}</p>
-                            <p><strong>Category:</strong> ${story.category}</p>
+                            <p><strong>Category:</strong> ${story.categories.join(", ")}</p>
                             <button class="btn delete-story" data-id="${story.id}">Delete Story</button>
                         </div>
                     </div>
@@ -157,7 +157,6 @@
             });
     });
 
-    // Enable drag and drop for story reordering
     function enableDragAndDrop() {
         const draggableElements = document.querySelectorAll(".story");
         let draggedElement = null;
@@ -182,34 +181,22 @@
         });
     }
 
-    // Save story order
     saveOrderButton.addEventListener("click", () => {
         const reorderedStories = Array.from(storyList.children).map((story, index) => ({
             id: parseInt(story.getAttribute("data-id"), 10),
             orderIndex: index
         }));
 
-        if (reorderedStories.some(story => !story.id)) {
-            alert("Error: Missing story ID.");
-            return;
-        }
-
         fetch(`/api/stories/${postId}/reorder`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ stories: reorderedStories }),
         })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(err => { throw new Error(err); });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => alert(data.message))
             .catch(error => alert(`Error: ${error.message}`));
     });
 
-    // Add a new story
     addStoryButton.addEventListener("click", () => {
         const content = newStoryContent.value.trim();
         const category = newStoryCategory.value.trim();
@@ -222,68 +209,39 @@
 
         const formData = new FormData();
         formData.append("content", content);
-        formData.append("category", category);
+        formData.append("categories", category);
+        formData.append("postId", postId);
         if (image) {
             formData.append("image", image);
         }
 
-        fetch(`/api/stories?postId=${postId}`, {
+        fetch(`/api/stories`, {
             method: "POST",
             body: formData,
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to add story: ${response.statusText}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(addedStory => {
                 alert("Story added successfully!");
-                const storyElement = document.createElement("div");
-                storyElement.classList.add("story");
-                storyElement.setAttribute("data-id", addedStory.id);
-                storyElement.setAttribute("draggable", "true");
-                storyElement.innerHTML = `
-                        <img src="${addedStory.imagePath.startsWith('/') ? window.location.origin + addedStory.imagePath : addedStory.imagePath}" alt="Story Image">
-                        <div class="story-details">
-                            <p><strong>Content:</strong> ${addedStory.content}</p>
-                            <p><strong>Category:</strong> ${addedStory.category}</p>
-                            <button class="btn delete-story" data-id="${addedStory.id}">Delete Story</button>
-                        </div>
-                    `;
-                storyList.appendChild(storyElement);
-                enableDragAndDrop();
-                setupDeleteButtons();
-                newStoryContent.value = "";
-                newStoryCategory.value = "";
-                newStoryImage.value = "";
+                window.location.reload();
             })
-            .catch(error => {
-                console.error(error);
-                alert(`Error adding story: ${error.message}`);
-            });
+            .catch(error => alert(`Error adding story: ${error.message}`));
     });
 
-    // Setup delete buttons
     function setupDeleteButtons() {
         const deleteButtons = document.querySelectorAll(".delete-story");
         deleteButtons.forEach(button => {
             button.addEventListener("click", () => {
                 const storyId = button.getAttribute("data-id");
-                fetch(`/api/stories/${storyId}`, {
-                    method: "DELETE",
-                })
+                fetch(`/api/stories/${storyId}`, { method: "DELETE" })
                     .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Failed to delete story: ${response.statusText}`);
+                        if (response.ok) {
+                            alert("Story deleted successfully!");
+                            button.closest(".story").remove();
+                        } else {
+                            throw new Error("Failed to delete story.");
                         }
-                        alert("Story deleted successfully!");
-                        button.parentElement.remove();
                     })
-                    .catch(error => {
-                        console.error(error);
-                        alert(`Error deleting story: ${error.message}`);
-                    });
+                    .catch(error => alert(`Error deleting story: ${error.message}`));
             });
         });
     }

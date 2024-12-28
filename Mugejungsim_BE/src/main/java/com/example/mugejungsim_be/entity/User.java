@@ -1,9 +1,7 @@
 package com.example.mugejungsim_be.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class User {
     @Id
@@ -23,7 +22,6 @@ public class User {
     @Column(nullable = false)
     private String provider; // 로그인 제공자 (google, kakao)
 
-    // 연관 관계 필드는 그대로 유지
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 

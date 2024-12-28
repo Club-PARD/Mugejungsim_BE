@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * 스토리(Story) 엔티티 클래스
- * 게시물(Post)과 사용자(User)와 연결됨
  */
 @Getter
 @Setter
@@ -20,8 +21,10 @@ public class Story {
     @Column(nullable = false)
     private String content; // 스토리 내용
 
-    @Column(nullable = false)
-    private String category; // 스토리 카테고리
+    @ElementCollection
+    @CollectionTable(name = "story_categories", joinColumns = @JoinColumn(name = "story_id"))
+    @Column(name = "category")
+    private List<String> categories; // 다중 카테고리 지원
 
     private String imagePath; // 이미지 경로 (선택 사항)
 

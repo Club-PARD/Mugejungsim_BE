@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * 파일 저장 서비스
@@ -17,6 +18,8 @@ import java.util.UUID;
  */
 @Service
 public class FileStorageService {
+
+    private static final Logger LOGGER = Logger.getLogger(FileStorageService.class.getName());
 
     /**
      * 파일 업로드 기본 디렉토리
@@ -26,16 +29,23 @@ public class FileStorageService {
     private String uploadDir;
 
     /**
+     * 저장된 파일의 URL 기본 경로
+     */
+    @Value("${file.base-url}")
+    private String baseUrl;
+
+    /**
      * 이미지를 저장하고 경로를 반환합니다.
      *
      * @param image 업로드할 이미지 파일 (MultipartFile)
-     * @return 저장된 파일 경로
+     * @return 저장된 파일의 URL
      * @throws IOException 파일 저장 중 발생할 수 있는 예외
      */
     @Transactional
     public String storeImage(MultipartFile image) throws IOException {
         // 이미지가 비어있는지 확인
         if (image.isEmpty()) {
+            LOGGER.warning("Empty file upload attempt.");
             throw new IllegalArgumentException("비어있는 파일은 저장할 수 없습니다.");
         }
 
@@ -45,6 +55,7 @@ public class FileStorageService {
 
         // 유효한 이미지 확장자인지 확인
         if (!isValidImageExtension(extension)) {
+            LOGGER.warning("Invalid file extension: " + extension);
             throw new IllegalArgumentException("유효하지 않은 파일 확장자: " + extension);
         }
 
@@ -60,8 +71,10 @@ public class FileStorageService {
         // 파일 저장
         Files.copy(image.getInputStream(), targetPath);
 
-        // 저장된 파일 경로 반환
-        return targetPath.toString();
+        // 저장된 파일의 URL 반환
+        String fileUrl = baseUrl + "/" + uniqueFilename;
+        LOGGER.info("File uploaded successfully: " + fileUrl);
+        return fileUrl;
     }
 
     /**

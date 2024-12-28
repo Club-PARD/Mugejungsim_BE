@@ -26,81 +26,81 @@ public class PostService {
     private StoryRepository storyRepository;
 
     /**
-     * 새로운 게시물을 생성합니다.
-     *
-     * @param user    게시물을 생성하는 사용자
-     * @param postDto 게시물 데이터
-     * @return 생성된 게시물의 DTO
+     * 게시물 생성
      */
     @Transactional
     public PostDto createPost(User user, PostDto postDto) {
-        // 새로운 Post 엔티티 생성
+        // Post 엔티티 생성
         Post post = new Post();
         post.setTitle(postDto.getTitle());
-        post.setDescription(
-                postDto.getDescription() != null && !postDto.getDescription().isEmpty()
-                        ? postDto.getDescription()
-                        : "No description provided"); // 기본값 설정
         post.setStartDate(postDto.getStartDate());
         post.setEndDate(postDto.getEndDate());
         post.setLocation(postDto.getLocation());
         post.setCompanion(postDto.getCompanion());
         post.setUser(user);
 
-        // 스토리 ID가 있는 경우 해당 스토리를 게시물과 연결
+        // 스토리와의 연관성 처리 (선택적)
         if (postDto.getStoryIds() != null && !postDto.getStoryIds().isEmpty()) {
             List<Story> stories = storyRepository.findAllById(postDto.getStoryIds());
-            post.setStories(stories);
-            for (Story story : stories) {
-                story.setPost(post);
-            }
+            post.setStories(stories); // 게시물과 스토리 연결
+            stories.forEach(story -> story.setPost(post)); // 각 스토리에 게시물 설정
         }
 
-        // 게시물 저장
+        // 초기 생성 시 bottle은 null로 저장
+        post.setBottle(null);
+
+        // Post 저장
         Post savedPost = postRepository.save(post);
+
+        // 저장된 Post를 DTO로 변환하여 반환
         return convertToDto(savedPost);
     }
 
     /**
-     * 게시물 엔티티를 DTO로 변환합니다.
-     *
-     * @param post 게시물 엔티티
-     * @return 게시물 DTO
+     * 사용자 게시물 조회
+     */
+    @Transactional(readOnly = true)
+    public List<PostDto> getPostsByUserId(Long userId) {
+        // 사용자의 게시물 목록 조회 및 DTO 변환
+        return postRepository.findByUserId(userId).stream()
+                .map(this::convertToDto) // Post -> PostDto 변환
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 게시물 Bottle 업데이트
+     */
+    @Transactional
+    public PostDto updateBottle(Long userId, Long postId, String bottle) {
+        return postRepository.findById(postId)
+                .filter(post -> post.getUser().getId().equals(userId)) // 해당 사용자의 게시물인지 확인
+                .map(post -> {
+                    post.setBottle(bottle); // Bottle 정보 업데이트
+                    Post updatedPost = postRepository.save(post);
+                    return convertToDto(updatedPost); // 업데이트된 Post를 DTO로 반환
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Post not found or access denied"));
+    }
+
+    /**
+     * 게시물 엔티티를 DTO로 변환
      */
     private PostDto convertToDto(Post post) {
-        // 스토리 ID 리스트 생성
         List<Long> storyIds = post.getStories() != null
                 ? post.getStories().stream()
                 .map(Story::getId)
                 .collect(Collectors.toList())
                 : List.of();
 
-        // PostDto 객체 생성 및 반환
         return new PostDto(
                 post.getId(),
                 post.getTitle(),
-                post.getDescription(),
                 post.getStartDate(),
                 post.getEndDate(),
                 post.getLocation(),
                 post.getCompanion(),
+                post.getBottle(),
                 storyIds
         );
-    }
-
-    /**
-     * 특정 사용자가 작성한 게시물 목록을 조회합니다.
-     *
-     * @param userId 사용자 ID
-     * @return 사용자가 작성한 게시물의 DTO 목록
-     */
-    @Transactional(readOnly = true)
-    public List<PostDto> getPostsByUserId(Long userId) {
-        // 사용자의 게시물 조회
-        List<Post> posts = postRepository.findByUserId(userId);
-        // 게시물 목록을 DTO로 변환하여 반환
-        return posts.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
     }
 }

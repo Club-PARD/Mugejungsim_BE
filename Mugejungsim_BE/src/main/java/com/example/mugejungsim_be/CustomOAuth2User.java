@@ -25,16 +25,16 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // 권한이 필요하면 추가
+        return Collections.emptyList();
     }
 
     @Override
     public String getName() {
-        return user.getName(); // User 엔티티의 이름 반환
+        return user.getName();
     }
 
     public Long getId() {
-        return user.getId(); // User 엔티티의 고유 ID 반환
+        return user.getId();
     }
 
     public User getUser() {
