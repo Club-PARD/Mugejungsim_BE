@@ -11,13 +11,13 @@ public class GoogleLoginService {
     @Autowired
     private UserRepository userRepository;
 
-    public User processGoogleUser(String name, String profileImage) {
+    public User processGoogleUser(String name) {
         // 기본값 처리
         name = (name != null && !name.isEmpty()) ? name : "Anonymous User";
-        profileImage = (profileImage != null && !profileImage.isEmpty()) ? profileImage : "default-profile.png";
+
 
         // 신규 사용자 생성
-        User newUser = new User(name, profileImage, "google");
+        User newUser = new User(name, "google");
         return userRepository.save(newUser);
     }
 }

@@ -24,7 +24,7 @@ public class KakaoLoginController {
     /**
      * 카카오 로그인 요청을 처리합니다.
      *
-     * @param kakaoData 카카오로부터 전달받은 사용자 데이터 (name, profileImage 등).
+     * @param kakaoData 카카오로부터 전달받은 사용자 데이터 (name 등).
      * @return 저장된 사용자 정보(User).
      */
     @PostMapping("/login")
@@ -34,10 +34,9 @@ public class KakaoLoginController {
 
         // 사용자 데이터 추출
         String name = kakaoData.getOrDefault("name", "Anonymous User"); // 이름이 없으면 "Anonymous User"로 설정
-        String profileImage = kakaoData.getOrDefault("profileImage", "default-profile.png"); // 이미지가 없으면 기본 이미지 설정
 
         // 카카오 사용자 정보 처리
-        User user = kakaoLoginService.processKakaoUser(name, profileImage);
+        User user = kakaoLoginService.processKakaoUser(name);
 
         // 처리된 사용자 정보 반환
         return ResponseEntity.ok(user);

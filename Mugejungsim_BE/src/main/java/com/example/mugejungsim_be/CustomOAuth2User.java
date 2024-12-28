@@ -33,10 +33,6 @@ public class CustomOAuth2User implements OAuth2User {
         return user.getName(); // User 엔티티의 이름 반환
     }
 
-    public String getProfileImage() {
-        return user.getProfileImageUrl(); // User 엔티티의 프로필 이미지 반환
-    }
-
     public Long getId() {
         return user.getId(); // User 엔티티의 고유 ID 반환
     }

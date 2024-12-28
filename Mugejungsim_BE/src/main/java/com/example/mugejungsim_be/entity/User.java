@@ -20,8 +20,6 @@ public class User {
     @Column(nullable = false)
     private String name; // 사용자 이름 또는 닉네임
 
-    @Column
-    private String profileImageUrl; // 사용자 프로필 이미지 URL
 
     @Column(nullable = false)
     private String provider; // 로그인 제공자 (google, kakao)
@@ -33,9 +31,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Story> stories = new ArrayList<>();
 
-    public User(String name, String profileImageUrl, String provider) {
+    public User(String name, String provider) {
         this.name = name;
-        this.profileImageUrl = profileImageUrl;
         this.provider = provider;
     }
 }

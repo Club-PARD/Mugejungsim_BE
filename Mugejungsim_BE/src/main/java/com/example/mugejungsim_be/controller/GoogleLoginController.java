@@ -24,17 +24,16 @@ public class GoogleLoginController {
     /**
      * 구글 로그인 요청을 처리합니다.
      *
-     * @param googleData 구글로부터 전달받은 사용자 데이터 (name, picture 등).
+     * @param googleData 구글로부터 전달받은 사용자 데이터 (name 등).
      * @return 저장된 사용자 정보(User).
      */
     @PostMapping("/login")
     public ResponseEntity<User> loginWithGoogle(@RequestBody Map<String, String> googleData) {
         // 구글 데이터 추출
         String name = googleData.getOrDefault("name", "Anonymous User"); // 이름이 없을 경우 기본값 설정
-        String profileImage = googleData.getOrDefault("picture", "default-profile.png"); // 프로필 이미지가 없을 경우 기본값 설정
 
         // 구글 사용자 정보 처리
-        User user = googleLoginService.processGoogleUser(name, profileImage);
+        User user = googleLoginService.processGoogleUser(name);
 
         // 처리된 사용자 정보 반환
         return ResponseEntity.ok(user);

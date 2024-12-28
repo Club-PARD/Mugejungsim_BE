@@ -72,6 +72,7 @@ public class StoryService {
      * @param postId        게시물 ID
      * @param orderedStories 순서를 업데이트할 스토리의 DTO 목록
      */
+
     @Transactional
     public void reorderStories(Long postId, List<StoryDto> orderedStories) {
         List<Story> stories = storyRepository.findByPostId(postId);

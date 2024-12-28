@@ -26,7 +26,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             // OAuth2 제공자 정보 (google, kakao 등)
             String registrationId = userRequest.getClientRegistration().getRegistrationId();
             String name = null;
-            String profileImage = null;
 
             // 디버깅 로그: OAuth2 제공자 및 사용자 속성 출력
             System.out.println("Registration ID: " + registrationId);
@@ -35,7 +34,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if ("google".equalsIgnoreCase(registrationId)) {
                 // Google 사용자 정보 추출
                 name = oAuth2User.getAttribute("name");
-                profileImage = oAuth2User.getAttribute("picture");
             } else if ("kakao".equalsIgnoreCase(registrationId)) {
                 // Kakao 사용자 정보 추출
                 Map<String, Object> attributes = oAuth2User.getAttributes();
@@ -44,17 +42,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
                     if (profile != null) {
                         name = (String) profile.get("nickname");
-                        profileImage = (String) profile.get("profile_image_url");
                     }
                 }
             }
 
             // 사용자 데이터 저장 또는 업데이트
             String finalName = (name != null && !name.isEmpty()) ? name : "Anonymous User";
-            String finalProfileImage = (profileImage != null && !profileImage.isEmpty()) ? profileImage : "default-profile.png";
 
             // 새로운 사용자 생성 또는 기존 사용자 반환
-            User user = userRepository.save(new User(finalName, finalProfileImage, registrationId));
+            User user = userRepository.save(new User(finalName, registrationId));
 
             // 디버깅 로그: 저장된 사용자 정보 출력
             System.out.println("Saved User: " + user);
