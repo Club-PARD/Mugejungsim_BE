@@ -4,47 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f9;
-            padding: 20px;
-        }
-        img {
-            border-radius: 50%;
-            border: 5px solid #007bff;
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            margin-bottom: 20px;
-        }
-        h1 span {
-            color: #007bff;
-        }
-        .btn {
-            padding: 10px 20px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
 </head>
 <body>
-<img th:src="${picture}" alt="Profile Picture">
 <h1>Welcome, <span th:text="${name}">User</span>!</h1>
-<p>Email: <span th:text="${email}"></span></p>
-<a href="/logout" class="btn">Logout</a>
+<img th:src="${picture}" alt="Profile Picture">
 <div>
-    <button class="btn" onclick="location.href='/create-post'">Create a Post</button>
-    <button class="btn" onclick="location.href='/view-posts'">View Posts</button>
+    <a href="/create-post">Create a Post</a>
+    <a href="/view-posts">View Posts</a>
 </div>
+<a href="/logout">Logout</a>
 </body>
 </html>
