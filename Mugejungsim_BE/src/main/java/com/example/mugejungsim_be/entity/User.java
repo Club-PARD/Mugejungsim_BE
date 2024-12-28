@@ -20,7 +20,6 @@ public class User {
     @Column(nullable = false)
     private String name; // 사용자 이름 또는 닉네임
 
-
     @Column(nullable = false)
     private String provider; // 로그인 제공자 (google, kakao)
 

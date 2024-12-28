@@ -18,7 +18,6 @@ public class UserService {
             return userRepository.findById(user.getId())
                     .map(existingUser -> {
                         existingUser.setName(user.getName());
-                        existingUser.setProfileImageUrl(user.getProfileImageUrl());
                         existingUser.setProvider(user.getProvider());
                         return userRepository.save(existingUser);
                     })
