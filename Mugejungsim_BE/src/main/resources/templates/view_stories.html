@@ -7,61 +7,88 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
             background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
         }
         h1 {
             color: #333;
-        }
-        .story {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #fff;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .story img {
-            max-width: 150px;
-            max-height: 150px;
-            width: auto;
-            height: auto;
-            border-radius: 5px;
-            object-fit: cover;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .story-details {
-            flex: 1;
+            font-size: 32px;
+            margin-bottom: 20px;
         }
         .btn {
-            padding: 10px;
+            padding: 10px 20px;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
-            text-decoration: none;
+            font-size: 16px;
             cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 20px;
         }
         .btn:hover {
             background-color: #0056b3;
         }
+        #story-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .story {
+            width: 200px;
+            height: 200px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .story img {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .story-details p {
+            font-size: 14px;
+            color: #555;
+            margin: 5px 0;
+        }
         #loading {
             color: #007bff;
             font-weight: bold;
+            margin-bottom: 20px;
         }
         #story-form {
             margin-top: 20px;
-            padding: 10px;
+            padding: 20px;
             background-color: #fff;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         #story-form textarea,
         #story-form select,
-        #story-form input[type="file"] {
+        #story-form input[type="file"],
+        #story-form button {
             width: 100%;
             margin: 10px 0;
             padding: 10px;
@@ -69,12 +96,9 @@
             border-radius: 5px;
         }
         #story-form button {
-            width: 100%;
-            padding: 10px;
             background-color: #28a745;
             color: white;
-            border: none;
-            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
         }
         #story-form button:hover {
@@ -83,35 +107,35 @@
         #image-preview {
             max-width: 150px;
             max-height: 150px;
-            margin-top: 10px;
+            margin: 10px auto;
             display: none;
-            border-radius: 5px;
+            border-radius: 10px;
             object-fit: cover;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
-<h1>Manage Stories</h1>
-<a href="/view-posts" class="btn">Back to Posts</a>
-<button id="save-order" class="btn" style="margin-top: 10px;">Save Order</button>
+<h1>스토리 관리</h1>
+<a href="/view-posts" class="btn">게시물로 돌아가기</a>
+<button id="save-order" class="btn">순서 저장</button>
 
 <div id="story-list"></div>
-<p id="loading">Loading...</p>
+<p id="loading">로딩 중...</p>
 
 <div id="story-form">
-    <h2>Add New Story</h2>
-    <textarea id="new-story-content" placeholder="Enter story content" required></textarea>
+    <h2>새로운 스토리 추가</h2>
+    <textarea id="new-story-content" placeholder="스토리 내용을 입력하세요" required></textarea>
     <select id="new-story-category" required>
-        <option value="">Select Category</option>
+        <option value="">카테고리를 선택하세요</option>
         <option value="Adventure">Adventure</option>
         <option value="Relaxation">Relaxation</option>
         <option value="Culture">Culture</option>
         <option value="Nature">Nature</option>
     </select>
     <input type="file" id="new-story-image" accept="image/*">
-    <img id="image-preview" alt="Image Preview">
-    <button id="add-story">Add Story</button>
+    <img id="image-preview" alt="이미지 미리보기">
+    <button id="add-story">스토리 추가</button>
 </div>
 
 <script>
@@ -127,46 +151,76 @@
     const postId = params.get('postId');
 
     if (!postId) {
-        alert("Invalid post ID.");
+        alert("잘못된 게시물 ID입니다.");
         window.location.href = "/view-posts";
     }
 
-    // Load stories for the post
     document.addEventListener("DOMContentLoaded", () => {
         fetch(`/api/stories/${postId}/stories`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error fetching stories: ${response.statusText}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(stories => {
                 loadingIndicator.style.display = "none";
                 if (stories.length === 0) {
-                    storyList.innerHTML = "<p>No stories available for this post.</p>";
+                    storyList.innerHTML = "<p>이 게시물에 대한 스토리가 없습니다.</p>";
                     return;
                 }
-
                 storyList.innerHTML = stories.map(story => `
                     <div class="story" data-id="${story.id}" draggable="true">
-                        ${story.imagePath ? `<img src="${story.imagePath.startsWith('/') ? window.location.origin + story.imagePath : story.imagePath}" alt="Story Image">` : ''}
+                        ${story.imagePath ? `<img src="${story.imagePath}" alt="Story Image">` : ''}
                         <div class="story-details">
-                            <p><strong>Content:</strong> ${story.content}</p>
-                            <p><strong>Category:</strong> ${story.categories.join(", ")}</p>
-                            <button class="btn delete-story" data-id="${story.id}">Delete Story</button>
+                            <p><strong>내용:</strong> ${story.content}</p>
+                            <p><strong>카테고리:</strong> ${story.categories.join(", ")}</p>
+                            <button class="btn delete-story" data-id="${story.id}">삭제</button>
                         </div>
                     </div>
-                `).join("");
-
+                `).join('');
                 enableDragAndDrop();
                 setupDeleteButtons();
             })
             .catch(error => {
                 loadingIndicator.style.display = "none";
                 console.error(error);
-                storyList.innerHTML = `<p>Error loading stories: ${error.message}</p>`;
+                storyList.innerHTML = `<p>스토리를 로드하는 중 오류가 발생했습니다: ${error.message}</p>`;
             });
     });
+
+    function enableDragAndDrop() {
+        const draggableElements = document.querySelectorAll(".story");
+        let draggedElement = null;
+
+        draggableElements.forEach(story => {
+            story.addEventListener("dragstart", (e) => {
+                draggedElement = story;
+                e.dataTransfer.effectAllowed = "move";
+            });
+            story.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                const currentHovered = e.target.closest(".story");
+                if (currentHovered && currentHovered !== draggedElement) {
+                    storyList.insertBefore(draggedElement, currentHovered.nextSibling);
+                }
+            });
+            story.addEventListener("dragend", () => {
+                draggedElement = null;
+            });
+        });
+    }
+
+    function setupDeleteButtons() {
+        const deleteButtons = document.querySelectorAll(".delete-story");
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const storyId = button.getAttribute("data-id");
+                fetch(`/api/stories/${storyId}`, { method: "DELETE" })
+                    .then(response => {
+                        if (!response.ok) throw new Error("스토리를 삭제할 수 없습니다.");
+                        alert("스토리가 성공적으로 삭제되었습니다.");
+                        button.closest(".story").remove();
+                    })
+                    .catch(error => alert(`스토리 삭제 오류: ${error.message}`));
+            });
+        });
+    }
 
     newStoryImage.addEventListener('change', () => {
         const file = newStoryImage.files[0];
@@ -188,7 +242,7 @@
         const image = newStoryImage.files[0];
 
         if (!content || !category) {
-            alert("Content and category are required.");
+            alert("내용과 카테고리는 필수 입력 항목입니다.");
             return;
         }
 
@@ -196,20 +250,15 @@
         formData.append("content", content);
         formData.append("categories", category);
         formData.append("postId", postId);
-        if (image) {
-            formData.append("image", image);
-        }
+        if (image) formData.append("image", image);
 
-        fetch(`/api/stories`, {
-            method: "POST",
-            body: formData,
-        })
+        fetch(`/api/stories`, { method: "POST", body: formData })
             .then(response => response.json())
-            .then(addedStory => {
-                alert("Story added successfully!");
+            .then(() => {
+                alert("스토리가 성공적으로 추가되었습니다.");
                 window.location.reload();
             })
-            .catch(error => alert(`Error adding story: ${error.message}`));
+            .catch(error => alert(`스토리 추가 오류: ${error.message}`));
     });
 </script>
 </body>

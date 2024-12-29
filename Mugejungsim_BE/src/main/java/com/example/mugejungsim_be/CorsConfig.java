@@ -27,8 +27,8 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 모든 경로에 대해 CORS 허용
                 .allowedOrigins(
-                        "http://localhost", // iOS 앱에서 로컬 네트워크로 접근
-                        "http://192.168.1.22" // 백엔드의 IP 주소 (네트워크 상)
+                        "http://localhost" // iOS 앱에서 로컬 네트워크로 접근
+                      //  "http://192.168.1.22" // 백엔드의 IP 주소 (네트워크 상)
                 )
                 .allowedMethods("GET", "POST", "PATCH", "DELETE") // 허용할 HTTP 메서드
                 .allowedHeaders("*") // 모든 헤더 허용

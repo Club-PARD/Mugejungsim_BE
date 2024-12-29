@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @Service
 public class StoryService {
+
+    private static final Logger LOGGER = Logger.getLogger(StoryService.class.getName());
 
     @Autowired
     private StoryRepository storyRepository;
@@ -29,7 +32,7 @@ public class StoryService {
         Story story = new Story();
         story.setUser(user);
         story.setContent(content);
-        story.setCategories(categories); // 다중 카테고리 설정
+        story.setCategories(categories);
         story.setImagePath(imagePath);
 
         if (postId != null) {
@@ -44,6 +47,7 @@ public class StoryService {
         }
 
         Story savedStory = storyRepository.save(story);
+        LOGGER.info("Story created with ID: " + savedStory.getId());
         return new StoryDto(savedStory);
     }
 
@@ -53,10 +57,9 @@ public class StoryService {
     @Transactional
     public StoryDto updateStory(Long storyId, User user, String content, List<String> categories, String imagePath, Integer orderIndex) {
         Story story = storyRepository.findById(storyId)
-                .filter(existingStory -> existingStory.getUser().getId().equals(user.getId())) // 사용자 권한 확인
+                .filter(existingStory -> existingStory.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new RuntimeException("Story not found or access denied"));
 
-        // 수정 가능한 필드 업데이트
         if (content != null) {
             story.setContent(content);
         }
@@ -71,6 +74,7 @@ public class StoryService {
         }
 
         Story updatedStory = storyRepository.save(story);
+        LOGGER.info("Story updated with ID: " + updatedStory.getId());
         return new StoryDto(updatedStory);
     }
 
@@ -80,10 +84,11 @@ public class StoryService {
     @Transactional
     public void deleteStory(Long storyId, User user) {
         Story story = storyRepository.findById(storyId)
-                .filter(existingStory -> existingStory.getUser().getId().equals(user.getId())) // 사용자 권한 확인
+                .filter(existingStory -> existingStory.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new RuntimeException("Story not found or access denied"));
 
         storyRepository.delete(story);
+        LOGGER.info("Story deleted with ID: " + storyId);
     }
 
     /**
@@ -91,6 +96,8 @@ public class StoryService {
      */
     @Transactional(readOnly = true)
     public List<Story> getStoriesByPostId(Long postId) {
-        return storyRepository.findByPostId(postId);
+        List<Story> stories = storyRepository.findByPostId(postId);
+        LOGGER.info("Retrieved " + stories.size() + " stories for Post ID: " + postId);
+        return stories;
     }
 }

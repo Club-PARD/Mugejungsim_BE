@@ -3,17 +3,20 @@ package com.example.mugejungsim_be.controller;
 import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.dto.StoryDto;
 import com.example.mugejungsim_be.entity.Story;
+import com.example.mugejungsim_be.service.FileStorageService;
 import com.example.mugejungsim_be.service.StoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -22,6 +25,12 @@ public class StoryController {
 
     @Autowired
     private StoryService storyService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Value("${file.base-url}")
+    private String baseUrl;
 
     /**
      * 새로운 스토리 생성
@@ -47,8 +56,14 @@ public class StoryController {
 
         String imagePath = null;
         if (image != null && !image.isEmpty()) {
-            // 이미지 업로드 로직 구현 필요
-            imagePath = "path/to/uploaded/image";
+            try {
+                // Store the image and get its public URL
+                String storedFilename = fileStorageService.storeImage(image);
+                imagePath = baseUrl + "/" + storedFilename;
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(null);
+            }
         }
 
         StoryDto createdStory = storyService.createStory(
@@ -86,8 +101,14 @@ public class StoryController {
 
         String imagePath = null;
         if (image != null && !image.isEmpty()) {
-            // 이미지 업로드 로직 구현 필요
-            imagePath = "path/to/updated/image";
+            try {
+                // Store the image and get its public URL
+                String storedFilename = fileStorageService.storeImage(image);
+                imagePath = baseUrl + "/" + storedFilename;
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(null);
+            }
         }
 
         StoryDto updatedStory = storyService.updateStory(

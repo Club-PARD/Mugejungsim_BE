@@ -1,4 +1,4 @@
-package com.example.mugejungsim_be.service;
+package com.example.mugejungsim_be;
 
 import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.entity.User;
@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
@@ -47,14 +46,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
             }
 
-            // 사용자 데이터 저장 또는 업데이트
+            // 사용자 이름이 없을 경우 기본값 설정
             String finalName = (name != null && !name.isEmpty()) ? name : "Anonymous User";
 
-            // 새로운 사용자 생성 또는 기존 사용자 반환
-            User user = userRepository.save(new User(finalName, registrationId));
+            // 사용자 검색 또는 생성
+            User user = userRepository.findByNameAndProvider(finalName, registrationId)
+                    .orElseGet(() -> {
+                        // 새 사용자 저장
+                        User newUser = new User(finalName, registrationId);
+                        return userRepository.save(newUser);
+                    });
 
-            // 디버깅 로그: 저장된 사용자 정보 출력
-            System.out.println("Saved User: " + user);
+            // 디버깅 로그: 사용자 정보 출력
+            System.out.println("Processed User: " + user);
 
             return new CustomOAuth2User(oAuth2User.getAttributes(), user);
         } catch (Exception e) {
