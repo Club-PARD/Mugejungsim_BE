@@ -1,6 +1,5 @@
 package com.example.mugejungsim_be;
 
-import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.entity.User;
 import com.example.mugejungsim_be.repository.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -9,6 +8,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
+
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
@@ -21,49 +22,74 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         try {
+            // Load the default OAuth2 user
             OAuth2User oAuth2User = super.loadUser(userRequest);
 
-            // OAuth2 제공자 정보 (google, kakao 등)
+            // Identify the provider (e.g., google, kakao)
             String registrationId = userRequest.getClientRegistration().getRegistrationId();
-            String name = null;
-
-            // 디버깅 로그: OAuth2 제공자 및 사용자 속성 출력
             System.out.println("Registration ID: " + registrationId);
-            System.out.println("OAuth2User Attributes: " + oAuth2User.getAttributes());
 
-            if ("google".equalsIgnoreCase(registrationId)) {
-                // Google 사용자 정보 추출
-                name = oAuth2User.getAttribute("name");
-            } else if ("kakao".equalsIgnoreCase(registrationId)) {
-                // Kakao 사용자 정보 추출
-                Map<String, Object> attributes = oAuth2User.getAttributes();
-                Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-                if (kakaoAccount != null) {
-                    Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                    if (profile != null) {
-                        name = (String) profile.get("nickname");
-                    }
-                }
-            }
+            // Extract user information based on the provider
+            String name = extractUserName(oAuth2User.getAttributes(), registrationId);
 
-            // 사용자 이름이 없을 경우 기본값 설정
+            // Use a default name if none is provided
             String finalName = (name != null && !name.isEmpty()) ? name : "Anonymous User";
 
-            // 사용자 검색 또는 생성
-            User user = userRepository.findByNameAndProvider(finalName, registrationId)
-                    .orElseGet(() -> {
-                        // 새 사용자 저장
-                        User newUser = new User(finalName, registrationId);
-                        return userRepository.save(newUser);
-                    });
+            // Retrieve or create the user in the database
+            User user = findOrCreateUser(finalName, registrationId);
 
-            // 디버깅 로그: 사용자 정보 출력
+            // Log the processed user information
             System.out.println("Processed User: " + user);
 
+            // Return a custom OAuth2 user
             return new CustomOAuth2User(oAuth2User.getAttributes(), user);
+
         } catch (Exception e) {
+            System.err.println("Error loading OAuth2 user: " + e.getMessage());
             e.printStackTrace();
             throw e;
         }
+    }
+
+    /**
+     * Extracts the user name based on the OAuth2 provider.
+     *
+     * @param attributes      The attributes received from the provider.
+     * @param registrationId  The provider ID (e.g., google, kakao).
+     * @return The extracted user name.
+     */
+    private String extractUserName(Map<String, Object> attributes, String registrationId) {
+        if ("google".equalsIgnoreCase(registrationId)) {
+            // Extract name from Google attributes
+            return (String) attributes.get("name");
+        } else if ("kakao".equalsIgnoreCase(registrationId)) {
+            // Extract name from Kakao attributes
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            if (kakaoAccount != null) {
+                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+                if (profile != null) {
+                    return (String) profile.get("nickname");
+                }
+            }
+        }
+        return null; // Return null if no name is found
+    }
+
+    /**
+     * Finds or creates a user in the database.
+     *
+     * @param name            The user name.
+     * @param registrationId  The provider ID (e.g., google, kakao).
+     * @return The user entity.
+     */
+    private User findOrCreateUser(String name, String registrationId) {
+        Optional<User> existingUser = userRepository.findByNameAndProvider(name, registrationId);
+        if (existingUser.isPresent()) {
+            return existingUser.get();
+        }
+
+        // Create a new user if not found
+        User newUser = new User(name, registrationId);
+        return userRepository.save(newUser);
     }
 }

@@ -26,12 +26,11 @@ public class UserController {
         User savedUser = userService.saveOrUpdateUser(user);
         return ResponseEntity.ok(savedUser);
     }
-
     /**
      * 사용자 ID로 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }

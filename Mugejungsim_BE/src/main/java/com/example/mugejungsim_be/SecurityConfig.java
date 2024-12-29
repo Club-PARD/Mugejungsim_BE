@@ -30,7 +30,6 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/oauth2/**", "/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
-
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
                         .defaultSuccessUrl("/main", true)
