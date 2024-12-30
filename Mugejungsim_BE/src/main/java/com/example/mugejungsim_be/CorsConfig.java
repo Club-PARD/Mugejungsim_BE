@@ -27,6 +27,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 모든 경로에 대해 CORS 허용
                 .allowedOrigins(
+                        "https://mugejunsim.store",
                         "http://localhost",         // 로컬 환경
                         "http://localhost:8080",    // 로컬 환경에서 명시적인 포트 추가
                         "http://172.17.208.113",    // iOS 디바이스에서 백엔드 접속 IP
