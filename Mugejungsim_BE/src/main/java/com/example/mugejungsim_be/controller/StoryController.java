@@ -1,23 +1,18 @@
 package com.example.mugejungsim_be.controller;
 
-import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.dto.StoryDto;
-import com.example.mugejungsim_be.entity.Story;
 import com.example.mugejungsim_be.service.FileStorageService;
 import com.example.mugejungsim_be.service.StoryService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import com.example.mugejungsim_be.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stories")
@@ -29,136 +24,97 @@ public class StoryController {
     @Autowired
     private FileStorageService fileStorageService;
 
-    @Value("${file.base-url}")
-    private String baseUrl;
+    @Autowired
+    private UserService userService;
 
-    /**
-     * 새로운 스토리 생성
-     */
-    @Operation(summary = "Create a new story", description = "Create a new story with optional categories, image, and orderIndex.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Story created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized access")
-    })
-    @PostMapping
-    public ResponseEntity<StoryDto> createStory(
-            @AuthenticationPrincipal CustomOAuth2User customUser,
-            @RequestParam("content") String content,
-            @RequestParam("categories") List<String> categories,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "orderIndex", required = false) Integer orderIndex,
-            @RequestParam(value = "postId", required = false) Long postId) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<?> createStory(
+            @RequestParam Long userId,
+            @RequestParam Long postId,
+            @RequestPart(value = "photo", required = false) MultipartFile photo,
+            @RequestPart(value = "data", required = true) String jsonData) {
 
-        if (customUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        try {
+            // JSON 데이터를 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> requestData = objectMapper.readValue(jsonData, Map.class);
 
-        String imagePath = null;
-        if (image != null && !image.isEmpty()) {
-            try {
-                // Store the image and get its public URL
-                String storedFilename = fileStorageService.storeImage(image);
-                imagePath = baseUrl + "/" + storedFilename;
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(null);
+            // "photos" 배열 가져오기
+            List<Map<String, Object>> photos = (List<Map<String, Object>>) requestData.get("photos");
+            if (photos == null || photos.isEmpty()) {
+                return ResponseEntity.badRequest().body("Photos cannot be null or empty");
             }
+
+            // 첫 번째 사진 데이터만 처리
+            Map<String, Object> photoData = photos.get(0);
+            String content = (String) photoData.get("content");
+            List<String> categories = (List<String>) photoData.get("categories");
+            Integer orderIndex = (Integer) photoData.get("orderIndex");
+            String imagePathFromData = (String) photoData.get("imagePath");
+
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Content cannot be null or empty");
+            }
+
+            // 사진 처리
+            String imagePath = null;
+            if (photo != null && !photo.isEmpty()) {
+                imagePath = fileStorageService.storeImage(photo);
+            } else if (imagePathFromData != null) {
+                imagePath = imagePathFromData;
+            }
+
+            // 스토리 생성
+            storyService.createStory(userId, postId, content, categories, imagePath, orderIndex);
+
+            return ResponseEntity.ok("Story created successfully");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
-
-        StoryDto createdStory = storyService.createStory(
-                customUser.getUser(),
-                content,
-                categories,
-                imagePath,
-                orderIndex,
-                postId
-        );
-
-        return ResponseEntity.ok(createdStory);
     }
 
-    /**
-     * 스토리 수정
-     */
-    @Operation(summary = "Update a story", description = "Update an existing story's content, categories, image, or orderIndex.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Story updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Story not found or access denied")
-    })
+
     @PutMapping("/{storyId}")
     public ResponseEntity<StoryDto> updateStory(
-            @AuthenticationPrincipal CustomOAuth2User customUser,
+            @RequestParam Long userId,
             @PathVariable Long storyId,
-            @RequestParam(value = "content", required = false) String content,
-            @RequestParam(value = "categories", required = false) List<String> categories,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "orderIndex", required = false) Integer orderIndex) {
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) List<String> categories,
+            @RequestPart(required = false) MultipartFile image,
+            @RequestParam(required = false) Integer orderIndex) {
 
-        if (customUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        String imagePath = null;
-        if (image != null && !image.isEmpty()) {
-            try {
-                // Store the image and get its public URL
-                String storedFilename = fileStorageService.storeImage(image);
-                imagePath = baseUrl + "/" + storedFilename;
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(null);
+        try {
+            String imagePath = null;
+            if (image != null && !image.isEmpty()) {
+                imagePath = fileStorageService.storeImage(image);
             }
+
+            StoryDto updatedStory = storyService.updateStory(storyId, userService.getUserById(userId), content, categories, imagePath, orderIndex);
+            return ResponseEntity.ok(updatedStory);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-
-        StoryDto updatedStory = storyService.updateStory(
-                storyId,
-                customUser.getUser(),
-                content,
-                categories,
-                imagePath,
-                orderIndex
-        );
-
-        return ResponseEntity.ok(updatedStory);
     }
 
-    /**
-     * 스토리 삭제
-     */
-    @Operation(summary = "Delete a story", description = "Delete an existing story by ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Story deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Story not found or access denied")
-    })
     @DeleteMapping("/{storyId}")
     public ResponseEntity<?> deleteStory(
-            @AuthenticationPrincipal CustomOAuth2User customUser,
+            @RequestParam Long userId,
             @PathVariable Long storyId) {
-
-        if (customUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        try {
+            storyService.deleteStory(storyId, userId);
+            return ResponseEntity.ok("Story deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Story not found or access denied");
         }
-
-        storyService.deleteStory(storyId, customUser.getUser());
-        return ResponseEntity.ok("Story deleted successfully");
     }
 
-    /**
-     * 특정 게시물에 연결된 스토리 목록 조회
-     */
-    @Operation(summary = "Get stories for a post", description = "Retrieve all stories linked to a specific post, sorted by orderIndex.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Stories retrieved successfully"),
-            @ApiResponse(responseCode = "404", description = "Post not found")
-    })
     @GetMapping("/{postId}/stories")
     public ResponseEntity<List<StoryDto>> getStoriesForPost(@PathVariable Long postId) {
-        List<Story> stories = storyService.getStoriesByPostId(postId);
-        List<StoryDto> storyDtos = stories.stream()
-                .sorted((s1, s2) -> s1.getOrderIndex().compareTo(s2.getOrderIndex()))
-                .map(StoryDto::new)
-                .toList();
-        return ResponseEntity.ok(storyDtos);
+        List<StoryDto> stories = storyService.getStoriesByPostId(postId);
+        return ResponseEntity.ok(stories);
     }
 }

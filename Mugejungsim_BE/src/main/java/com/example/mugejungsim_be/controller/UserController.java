@@ -1,13 +1,12 @@
 package com.example.mugejungsim_be.controller;
 
-import com.example.mugejungsim_be.CustomOAuth2User;
 import com.example.mugejungsim_be.entity.User;
 import com.example.mugejungsim_be.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,34 +18,46 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 사용자 저장 또는 업데이트
+     * 사용자 저장 또는 업데이트 및 로그인 처리
      */
     @PostMapping("/save")
-    public ResponseEntity<User> saveUser(@RequestBody User user) {
-        User savedUser = userService.saveOrUpdateUser(user);
-        return ResponseEntity.ok(savedUser);
+    public ResponseEntity<Long> saveUser(@RequestBody Map<String, String> userData) {
+        String name = userData.get("name");
+        String provider = userData.get("provider");
+
+        if (name == null || provider == null) {
+            return ResponseEntity.badRequest().build(); // 필수 값 누락 시 400 반환
+        }
+
+        Long userId = userService.saveOrUpdateUser(name, provider);
+        return ResponseEntity.ok(userId); // 생성 또는 업데이트된 사용자 ID 반환
     }
+
+    /**
+     * 사용자 조회 (name과 provider로)
+     */
+    @GetMapping("/find")
+    public ResponseEntity<User> findUserByNameAndProvider(
+            @RequestParam String name,
+            @RequestParam String provider) {
+        try {
+            User user = userService.findByNameAndProvider(name, provider);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build(); // 사용자 없을 시 404 반환
+        }
+    }
+
     /**
      * 사용자 ID로 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser(@AuthenticationPrincipal CustomOAuth2User customUser) {
-        if (customUser == null) {
-            return ResponseEntity.status(401).body(null);
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        try {
+            User user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build(); // 사용자 미존재 시 404 반환
         }
-
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", customUser.getId());
-        userInfo.put("name", customUser.getName());
-        userInfo.put("provider", customUser.getUser().getProvider());
-
-        return ResponseEntity.ok(userInfo);
     }
 }
-

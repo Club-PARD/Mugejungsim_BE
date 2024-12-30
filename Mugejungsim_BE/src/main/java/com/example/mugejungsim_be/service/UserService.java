@@ -11,24 +11,32 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // 사용자 저장 또는 업데이트
-    public User saveOrUpdateUser(User user) {
-        if (user.getId() != null) {
-            // 기존 사용자가 존재하면 업데이트
-            return userRepository.findById(user.getId())
-                    .map(existingUser -> {
-                        existingUser.setName(user.getName());
-                        existingUser.setProvider(user.getProvider());
-                        return userRepository.save(existingUser);
-                    })
-                    .orElseGet(() -> userRepository.save(user)); // 기존 사용자가 없으면 새로 저장
-        } else {
-            // 새로운 사용자 저장
-            return userRepository.save(user);
-        }
+    /**
+     * 사용자 조회: name과 provider를 기반으로 사용자 찾기
+     */
+    public User findByNameAndProvider(String name, String provider) {
+        return userRepository.findByNameAndProvider(name, provider)
+                .orElseThrow(() -> new RuntimeException("User not found with name: " + name + " and provider: " + provider));
     }
 
-    // ID로 사용자 조회
+    /**
+     * 사용자 생성 또는 업데이트: name과 provider를 기반으로
+     */
+    public Long saveOrUpdateUser(String name, String provider) {
+        return userRepository.findByNameAndProvider(name, provider)
+                .map(User::getId) // 기존 유저가 있으면 ID 반환
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setName(name);
+                    user.setProvider(provider);
+                    User savedUser = userRepository.save(user);
+                    return savedUser.getId(); // 새로 생성된 유저 ID 반환
+                });
+    }
+
+    /**
+     * ID로 사용자 조회
+     */
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));

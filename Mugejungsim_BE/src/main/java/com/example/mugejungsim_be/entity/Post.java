@@ -21,6 +21,9 @@ public class Post {
     private Long id; // 게시물 ID
 
     @Column(nullable = false)
+    private String pid; // 프론트에서 보낸 ID
+
+    @Column(nullable = false)
     private String title; // 게시물 제목
 
     @Column(nullable = true) // 초기 생성 시 null 허용
@@ -40,7 +43,7 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 작성한 사용자와의 관계
+    private User user; // 게시물을 작성한 사용자와의 관계
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC") // 스토리를 orderIndex 기준으로 정렬

@@ -14,13 +14,13 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 고유 사용자 ID (DB 기본 키)
+    private Long id; // 고유 사용자 ID
 
     @Column(nullable = false)
     private String name; // 사용자 이름 또는 닉네임
 
     @Column(nullable = false)
-    private String provider; // 로그인 제공자 (google, kakao)
+    private String provider; // 로그인 제공자 (kakao 등)
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
