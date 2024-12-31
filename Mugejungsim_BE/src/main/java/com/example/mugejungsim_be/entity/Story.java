@@ -15,15 +15,11 @@ public class Story {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Story ID
 
-    @Column(nullable = false)
+    @Column
     private String content; // Story content
 
     @Column(nullable = false)
-    private String pid; // Story content
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Associated User
+    private String pid; // Unique Story Identifier
 
     @ElementCollection
     @CollectionTable(name = "story_categories", joinColumns = @JoinColumn(name = "story_id"))
@@ -38,5 +34,4 @@ public class Story {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post; // Associated Post
-
 }

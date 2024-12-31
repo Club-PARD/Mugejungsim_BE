@@ -12,5 +12,7 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
 
     @Query("SELECT MAX(s.orderIndex) FROM Story s WHERE s.post.id = :postId")
     Integer findMaxOrderIndexByPostId(@Param("postId") Long postId);
+
+
 }
 

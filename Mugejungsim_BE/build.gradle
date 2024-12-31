@@ -27,6 +27,7 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.33'
 	implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
+	implementation 'org.springframework.boot:spring-boot-starter-logging'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	// Lombok
 	implementation 'org.projectlombok:lombok:1.18.28'
@@ -42,6 +43,8 @@ dependencies {
 
 	// Test dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 }
 
 tasks.named('test') {

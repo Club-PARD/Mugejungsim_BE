@@ -21,7 +21,7 @@ public class UserController {
      * 사용자 저장 또는 업데이트 및 로그인 처리
      */
     @PostMapping("/save")
-    public ResponseEntity<Long> saveUser(@RequestBody Map<String, String> userData) {
+    public ResponseEntity<Map<String, Object>> saveUser(@RequestBody Map<String, String> userData) {
         String name = userData.get("name");
         String provider = userData.get("provider");
 
@@ -30,34 +30,15 @@ public class UserController {
         }
 
         Long userId = userService.saveOrUpdateUser(name, provider);
-        return ResponseEntity.ok(userId); // 생성 또는 업데이트된 사용자 ID 반환
+
+        // 사용자 정보와 ID를 Map에 담아 반환
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", userId);
+        response.put("name", name);
+        response.put("provider", provider);
+
+        return ResponseEntity.ok(response); // 사용자 정보 및 ID 반환
     }
 
-    /**
-     * 사용자 조회 (name과 provider로)
-     */
-    @GetMapping("/find")
-    public ResponseEntity<User> findUserByNameAndProvider(
-            @RequestParam String name,
-            @RequestParam String provider) {
-        try {
-            User user = userService.findByNameAndProvider(name, provider);
-            return ResponseEntity.ok(user);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build(); // 사용자 없을 시 404 반환
-        }
-    }
 
-    /**
-     * 사용자 ID로 조회
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        try {
-            User user = userService.getUserById(id);
-            return ResponseEntity.ok(user);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build(); // 사용자 미존재 시 404 반환
-        }
-    }
 }

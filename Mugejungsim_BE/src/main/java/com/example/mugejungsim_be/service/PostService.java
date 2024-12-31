@@ -22,17 +22,24 @@ public class PostService {
      * 새로운 게시물 생성
      */
     public Long createPost(Long userId, Post post) {
+        // userId로 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-        post.setUser(user); // 사용자 설정
+        // 게시물에 사용자 설정
+        post.setUser(user);
+
+        // 게시물 저장
         Post savedPost = postRepository.save(post);
-        return savedPost.getId(); // 생성된 게시물 ID 반환
+
+        // 생성된 게시물 ID 반환
+        return savedPost.getId();
     }
 
     /**
      * 사용자의 모든 게시물 조회
      */
+
     public List<Post> getPostsByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
