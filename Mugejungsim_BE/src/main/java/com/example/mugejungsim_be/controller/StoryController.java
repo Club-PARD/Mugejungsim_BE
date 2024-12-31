@@ -22,58 +22,49 @@ public class StoryController {
     private final StoryService storyService;
     private final S3Uploader s3Uploader;
 
-    /**
-     * 스토리 생성
-     */
-    @Operation(summary = "스토리 생성", description = "특정 게시물에 새로운 스토리를 생성합니다. 사진 업로드 및 JSON 데이터를 포함해야 합니다.")
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<?> createStory(
-            @RequestParam Long postId,
-            @RequestPart(value = "photo", required = false) MultipartFile photo,
-            @RequestPart(value = "data", required = true) String jsonData) {
+    @Operation(summary = "스토리 생성", description = "사진과 JSON 데이터를 받아 새로운 스토리를 생성합니다.")
+    public ResponseEntity<?> createStories(
+            @RequestPart(value = "photos") List<MultipartFile> photos,
+            @RequestPart(value = "data") String jsonData) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> requestData = objectMapper.readValue(jsonData, Map.class);
 
-            List<Map<String, Object>> photos = (List<Map<String, Object>>) requestData.get("photos");
-            if (photos == null || photos.isEmpty()) {
-                return ResponseEntity.badRequest().body("Photos cannot be null or empty");
+            // JSON 데이터 파싱
+            List<Map<String, Object>> requestDataList = objectMapper.readValue(jsonData, List.class);
+
+            if (requestDataList.isEmpty()) {
+                return ResponseEntity.badRequest().body("Data cannot be empty");
             }
 
-            Map<String, Object> photoData = photos.get(0);
-            String content = (String) photoData.get("content");
-            List<String> categories = (List<String>) photoData.get("categories");
-            String imagePathFromData = (String) photoData.get("imagePath");
+            // 사진 업로드와 JSON 데이터 매핑
+            for (int i = 0; i < requestDataList.size(); i++) {
+                Map<String, Object> storyData = requestDataList.get(i);
 
-            if (content == null || content.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Content cannot be null or empty");
+                // 사진 업로드 처리 (순서에 맞춰 매칭)
+                if (photos != null && photos.size() > i && !photos.get(i).isEmpty()) {
+                    String imagePath = s3Uploader.upload(photos.get(i), "stories");
+                    storyData.put("imagePath", imagePath); // 업로드된 경로를 추가
+                }
             }
 
-            String imagePath = null;
-            if (photo != null && !photo.isEmpty()) {
-                imagePath = s3Uploader.upload(photo, "stories");
-            } else if (imagePathFromData != null) {
-                imagePath = imagePathFromData;
-            }
+            // 서비스 호출하여 스토리 생성
+            List<Long> storyIds = storyService.createStory(requestDataList);
 
-            Long storyId = storyService.createStory(postId, content, categories, imagePath);
-
+            // 응답 생성
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Story created successfully");
-            response.put("storyId", storyId);
+            response.put("message", "Stories created successfully");
+            response.put("storyIds", storyIds);
 
             return ResponseEntity.ok(response);
 
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file to S3: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
         }
     }
 
-    /**
-     * 스토리 업데이트
-     */
+
+
     @Operation(summary = "스토리 업데이트", description = "특정 스토리의 내용을 업데이트합니다. 이미지 및 카테고리를 수정할 수 있습니다.")
     @PutMapping("/{storyId}")
     public ResponseEntity<?> updateStory(
@@ -82,17 +73,21 @@ public class StoryController {
             @RequestParam(required = false) List<String> categories,
             @RequestPart(required = false) MultipartFile image) {
         try {
+            // 이미지 업로드 처리
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
                 imagePath = s3Uploader.upload(image, "stories");
             }
 
+            // 내용 검증
             if (content != null && content.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Content cannot be an empty string.");
             }
 
+            // 서비스 호출
             Long updatedStoryId = storyService.updateStory(storyId, content, categories, imagePath);
 
+            // 응답 생성
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Story updated successfully");
             response.put("storyId", updatedStoryId);
@@ -104,9 +99,10 @@ public class StoryController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error updating story: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
 
     /**
      * 스토리 삭제

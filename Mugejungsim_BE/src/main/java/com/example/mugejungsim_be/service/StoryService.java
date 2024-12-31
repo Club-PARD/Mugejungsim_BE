@@ -9,9 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class StoryService {
@@ -23,33 +22,37 @@ public class StoryService {
     private PostRepository postRepository;
 
     /**
-     * 스토리 생성
+     * 스토리 생성 (단일/다중 처리)
      */
     @Transactional
-    public Long createStory(Long postId, String content, List<String> categories, String imagePath) {
-        // Validate postId and content
-        if (postId == null || postId <= 0) {
-            throw new IllegalArgumentException("Invalid postId: " + postId);
+    public List<Long> createStory(List<Map<String, Object>> storiesData) {
+        List<Long> storyIds = new ArrayList<>();
+
+        for (Map<String, Object> data : storiesData) {
+            Long postId = Long.valueOf((Integer) data.get("postId"));
+            String content = (String) data.get("content");
+            List<String> categories = (List<String>) data.get("categories");
+            String imagePath = (String) data.get("imagePath");
+            String pid = (String) data.get("pid");
+
+            // pid 유효성 검사
+            if (pid == null || pid.trim().isEmpty()) {
+                throw new IllegalArgumentException("PID must not be empty");
+            }
+
+            Post post = validatePost(postId);
+
+            Story story = new Story();
+            story.setPost(post);
+            story.setContent(content);
+            story.setCategories(categories != null ? categories : new ArrayList<>());
+            story.setImagePath(imagePath);
+            story.setPid(pid); // 프론트엔드에서 받은 PID 사용
+
+            storyIds.add(storyRepository.save(story).getId());
         }
-        if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Content must not be empty");
-        }
 
-        // Find the associated post
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
-
-        // Create a new story
-        Story story = new Story();
-        story.setPost(post);
-        story.setContent(content);
-        story.setCategories(categories != null ? categories : new ArrayList<>());
-        story.setImagePath(imagePath);
-        story.setPid(UUID.randomUUID().toString()); // Generate a unique PID
-
-        // Save the story
-        Story savedStory = storyRepository.save(story);
-        return savedStory.getId();
+        return storyIds;
     }
 
     /**
@@ -57,24 +60,30 @@ public class StoryService {
      */
     @Transactional
     public Long updateStory(Long storyId, String content, List<String> categories, String imagePath) {
-        // Find the story
+        // 스토리 존재 여부 확인
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new RuntimeException("Story not found with ID: " + storyId));
 
-        // Update fields if provided
+        // 내용 업데이트 (유효성 검증 포함)
         if (content != null) {
+            if (content.trim().isEmpty()) {
+                throw new IllegalArgumentException("Content cannot be an empty string.");
+            }
             story.setContent(content);
         }
+
+        // 카테고리 업데이트
         if (categories != null) {
             story.setCategories(categories);
         }
+
+        // 이미지 경로 업데이트
         if (imagePath != null) {
             story.setImagePath(imagePath);
         }
 
-        // Save the updated story
-        Story updatedStory = storyRepository.save(story);
-        return updatedStory.getId();
+        // 변경 사항 저장
+        return storyRepository.save(story).getId();
     }
 
     /**
@@ -84,7 +93,7 @@ public class StoryService {
     public List<StoryDto> getStoriesByPostId(Long postId) {
         return storyRepository.findByPostId(postId).stream()
                 .map(StoryDto::new)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**
@@ -92,12 +101,26 @@ public class StoryService {
      */
     @Transactional
     public void deleteStory(Long postId, Long storyId) {
-        // Find the story and ensure it belongs to the specified post
         Story story = storyRepository.findById(storyId)
                 .filter(existingStory -> existingStory.getPost().getId().equals(postId))
                 .orElseThrow(() -> new RuntimeException("Story not found or does not belong to the specified post"));
 
-        // Delete the story
         storyRepository.delete(story);
+    }
+    /**
+     * 유효성 검사 - 게시물
+     */
+    private Post validatePost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
+    }
+
+    /**
+     * 유효성 검사 - 내용
+     */
+    private void validateContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("Content must not be empty");
+        }
     }
 }

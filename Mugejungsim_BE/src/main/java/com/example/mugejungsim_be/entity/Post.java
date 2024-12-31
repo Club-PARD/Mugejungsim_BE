@@ -48,6 +48,5 @@ public class Post {
     private User user; // 게시물을 작성한 사용자와의 관계
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("orderIndex ASC")
     private List<Story> stories = new ArrayList<>();
 }
