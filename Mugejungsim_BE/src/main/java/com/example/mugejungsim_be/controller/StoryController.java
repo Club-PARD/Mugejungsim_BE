@@ -43,7 +43,6 @@ public class StoryController {
             Map<String, Object> photoData = photos.get(0);
             String content = (String) photoData.get("content");
             List<String> categories = (List<String>) photoData.get("categories");
-            Integer orderIndex = (Integer) photoData.get("orderIndex");
             String imagePathFromData = (String) photoData.get("imagePath");
 
             if (content == null || content.trim().isEmpty()) {
@@ -57,7 +56,7 @@ public class StoryController {
                 imagePath = imagePathFromData;
             }
 
-            Long storyId = storyService.createStory(postId, content, categories, imagePath, orderIndex);
+            Long storyId = storyService.createStory(postId, content, categories, imagePath);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Story created successfully");
@@ -81,8 +80,7 @@ public class StoryController {
             @PathVariable Long storyId,
             @RequestParam(required = false) String content,
             @RequestParam(required = false) List<String> categories,
-            @RequestPart(required = false) MultipartFile image,
-            @RequestParam(required = false) Integer orderIndex) {
+            @RequestPart(required = false) MultipartFile image) {
         try {
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
@@ -93,7 +91,7 @@ public class StoryController {
                 return ResponseEntity.badRequest().body("Content cannot be an empty string.");
             }
 
-            Long updatedStoryId = storyService.updateStory(storyId, content, categories, imagePath, orderIndex);
+            Long updatedStoryId = storyService.updateStory(storyId, content, categories, imagePath);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Story updated successfully");
@@ -134,21 +132,5 @@ public class StoryController {
     public ResponseEntity<List<StoryDto>> getStoriesForPost(@PathVariable Long postId) {
         List<StoryDto> stories = storyService.getStoriesByPostId(postId);
         return ResponseEntity.ok(stories);
-    }
-
-    /**
-     * 스토리 순서 업데이트
-     */
-    @Operation(summary = "스토리 순서 업데이트", description = "특정 게시물의 스토리 순서를 변경합니다.")
-    @PutMapping("/{postId}/update-order")
-    public ResponseEntity<?> updateStoryOrder(
-            @PathVariable Long postId,
-            @RequestBody List<Long> storyIds) {
-        try {
-            storyService.updateStoryOrder(postId, storyIds);
-            return ResponseEntity.ok("Story order updated successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating story order");
-        }
     }
 }

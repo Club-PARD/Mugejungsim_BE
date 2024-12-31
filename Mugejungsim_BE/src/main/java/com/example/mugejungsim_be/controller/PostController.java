@@ -46,22 +46,17 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 게시물 업데이트 (스토리와 bottle 추가)
-     */
     @Operation(
             summary = "게시물 업데이트 (최종화)",
-            description = "사용자 ID와 게시물 ID를 기반으로 게시물의 스토리와 bottle 정보를 업데이트합니다."
+            description = "게시물 ID를 기반으로 게시물의 스토리와 bottle 정보를 업데이트합니다."
     )
     @PutMapping("/{postId}/finalize")
     public ResponseEntity<Post> finalizePost(
-            @RequestParam Long userId,
             @PathVariable Long postId,
             @RequestBody Post updatedPostData) {
-        Post finalizedPost = postService.finalizePost(userId, postId, updatedPostData);
+        Post finalizedPost = postService.finalizePost(postId, updatedPostData);
         return ResponseEntity.ok(finalizedPost);
     }
-
     /**
      * 게시물 삭제
      */

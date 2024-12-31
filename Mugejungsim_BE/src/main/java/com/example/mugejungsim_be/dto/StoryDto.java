@@ -21,13 +21,11 @@ public class StoryDto {
     private String content;
     private List<String> categories; // 다중 카테고리 필드
     private String imagePath;
-    private Integer orderIndex;
 
     public StoryDto(Story story) {
         this.id = story.getId();
         this.content = story.getContent();
         this.categories = story.getCategories(); // 다중 카테고리 변환
         this.imagePath = story.getImagePath();
-        this.orderIndex = story.getOrderIndex();
     }
 }

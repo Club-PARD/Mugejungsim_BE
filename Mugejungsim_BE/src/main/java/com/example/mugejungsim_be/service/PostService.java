@@ -31,23 +31,26 @@ public class PostService {
         return postRepository.save(post).getId();
     }
 
-    /**
-     * 게시물 최종화 (스토리와 bottle 업데이트)
-     */
-    public Post finalizePost(Long userId, Long postId, Post updatedPostData) {
-        Post existingPost = postRepository.findById(postId)
-                .filter(post -> post.getUser().getId().equals(userId))
-                .orElseThrow(() -> new RuntimeException("Post not found or access denied"));
+    public Post finalizePost(Long postId, Post updatedPostData) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // bottle 및 스토리 업데이트
-        if (updatedPostData.getBottle() != null) {
-            existingPost.setBottle(updatedPostData.getBottle());
-        }
+        // 기존 필드 업데이트
+        post.setTitle(updatedPostData.getTitle());
+        post.setStartDate(updatedPostData.getStartDate());
+        post.setEndDate(updatedPostData.getEndDate());
+        post.setLocation(updatedPostData.getLocation());
+        post.setCompanion(updatedPostData.getCompanion());
+        post.setBottle(updatedPostData.getBottle());
+
+        // 기존 스토리를 유지하며 업데이트
         if (updatedPostData.getStories() != null) {
-            existingPost.setStories(updatedPostData.getStories());
+            post.getStories().clear(); // 기존 참조를 명시적으로 삭제
+            post.getStories().addAll(updatedPostData.getStories());
+            updatedPostData.getStories().forEach(story -> story.setPost(post)); // 역참조 설정
         }
 
-        return postRepository.save(existingPost);
+        return postRepository.save(post);
     }
 
     /**

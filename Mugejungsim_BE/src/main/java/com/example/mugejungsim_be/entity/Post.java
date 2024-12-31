@@ -1,5 +1,6 @@
 package com.example.mugejungsim_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,10 +43,11 @@ public class Post {
     private String companion; // 여행 동반자
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 게시물을 작성한 사용자와의 관계
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("orderIndex ASC") // 스토리를 orderIndex 기준으로 정렬
-    private List<Story> stories = new ArrayList<>(); // 게시물에 연결된 스토리 목록
+    @OrderBy("orderIndex ASC")
+    private List<Story> stories = new ArrayList<>();
 }

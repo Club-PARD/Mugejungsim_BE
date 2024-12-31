@@ -28,9 +28,6 @@ public class Story {
 
     private String imagePath; // Path to uploaded image (optional)
 
-    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
-    private Integer orderIndex; // Order index for sorting
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post; // Associated Post
