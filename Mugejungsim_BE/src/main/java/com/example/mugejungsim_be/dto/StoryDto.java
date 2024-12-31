@@ -29,3 +29,5 @@ public class StoryDto {
         this.imagePath = story.getImagePath();
     }
 }
+
+s
