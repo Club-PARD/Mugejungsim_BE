@@ -1,5 +1,6 @@
 package com.example.mugejungsim_be.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,7 @@ public class User {
     private String provider; // 로그인 제공자 (예: kakao)
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Post> posts = new ArrayList<>(); // 사용자가 작성한 게시물
 
     // Story와의 직접적인 관계 제거 (Post를 통해 간접적으로 참조 가능)

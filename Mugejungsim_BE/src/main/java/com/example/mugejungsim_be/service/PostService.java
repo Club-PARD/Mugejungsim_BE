@@ -38,43 +38,39 @@ public class PostService {
 
 
     public Post finalizePost(Long postId, Post updatedPostData) {
+        // 기존 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // 기존 필드 업데이트
-        post.setTitle(updatedPostData.getTitle());
-        post.setStartDate(updatedPostData.getStartDate());
-        post.setEndDate(updatedPostData.getEndDate());
-        post.setLocation(updatedPostData.getLocation());
-        post.setCompanion(updatedPostData.getCompanion());
-        post.setBottle(updatedPostData.getBottle());
+        // 게시물의 기본 정보 업데이트
+        if (updatedPostData.getTitle() != null) post.setTitle(updatedPostData.getTitle());
+        if (updatedPostData.getStartDate() != null) post.setStartDate(updatedPostData.getStartDate());
+        if (updatedPostData.getEndDate() != null) post.setEndDate(updatedPostData.getEndDate());
+        if (updatedPostData.getLocation() != null) post.setLocation(updatedPostData.getLocation());
+        if (updatedPostData.getCompanion() != null) post.setCompanion(updatedPostData.getCompanion());
+        if (updatedPostData.getBottle() != null) post.setBottle(updatedPostData.getBottle());
 
-        // 스토리 업데이트
+        // 스토리 업데이트 로직
         if (updatedPostData.getStories() != null) {
             Map<String, Story> existingStoriesMap = post.getStories().stream()
-                    .collect(Collectors.toMap(Story::getPid, story -> story)); // 기존 스토리를 PID 기준으로 매핑
-
-            List<Story> updatedStories = new ArrayList<>();
+                    .collect(Collectors.toMap(Story::getPid, story -> story)); // 기존 스토리들을 PID 기준으로 매핑
 
             for (Story updatedStory : updatedPostData.getStories()) {
                 Story existingStory = existingStoriesMap.get(updatedStory.getPid());
                 if (existingStory != null) {
                     // 기존 스토리 업데이트
-                    existingStory.setContent(updatedStory.getContent());
-                    existingStory.setCategories(updatedStory.getCategories());
-                    existingStory.setImagePath(updatedStory.getImagePath());
-                    updatedStories.add(existingStory);
+                    if (updatedStory.getContent() != null) existingStory.setContent(updatedStory.getContent());
+                    if (updatedStory.getCategories() != null) existingStory.setCategories(updatedStory.getCategories());
+                    if (updatedStory.getImagePath() != null) existingStory.setImagePath(updatedStory.getImagePath());
                 } else {
                     // 새로운 스토리 추가
-                    updatedStory.setPost(post);
-                    updatedStories.add(updatedStory);
+                    updatedStory.setPost(post); // 새로운 스토리와 게시물 연결
+                    post.getStories().add(updatedStory);
                 }
             }
-
-            post.getStories().clear();
-            post.getStories().addAll(updatedStories);
         }
 
+        // 게시물 저장
         return postRepository.save(post);
     }
 

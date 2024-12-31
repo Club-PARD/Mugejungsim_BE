@@ -123,6 +123,7 @@ public class StoryController {
     /**
      * 특정 게시물의 스토리 목록 조회
      */
+
     @Operation(summary = "스토리 목록 조회", description = "특정 게시물에 포함된 모든 스토리를 조회합니다.")
     @GetMapping("/{postId}/stories")
     public ResponseEntity<List<StoryDto>> getStoriesForPost(@PathVariable Long postId) {

@@ -7,7 +7,5 @@ import java.util.List;
 
 public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findByPostId(Long postId);
-
-
 }
 
