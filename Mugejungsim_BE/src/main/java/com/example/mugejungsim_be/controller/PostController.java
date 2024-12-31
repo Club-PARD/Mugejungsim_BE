@@ -1,10 +1,8 @@
 package com.example.mugejungsim_be.controller;
 
 import com.example.mugejungsim_be.entity.Post;
-import com.example.mugejungsim_be.entity.User;
 import com.example.mugejungsim_be.service.PostService;
-import com.example.mugejungsim_be.service.UserService;
-import jakarta.servlet.http.HttpSession;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,49 +21,54 @@ public class PostController {
     private PostService postService;
 
     /**
-     * 게시물 생성
+     * 게시물 생성 (초기 단계 - bottle 없이)
      */
+    @Operation(
+            summary = "게시물 생성",
+            description = "사용자 ID를 기반으로 게시물을 생성합니다. 초기 단계에서는 bottle 값 없이 저장됩니다."
+    )
     @PostMapping
     public ResponseEntity<Map<String, Object>> createPost(
-            @RequestParam Long userId, // userId를 요청에서 직접 받음
+            @RequestParam Long userId,
             @RequestBody Post post) {
-        // pid가 없으면 서버에서 생성 (선택 사항)
         if (post.getPid() == null || post.getPid().isEmpty()) {
             post.setPid(UUID.randomUUID().toString()); // 고유 pid 자동 생성
         }
 
-        // 서비스 호출
+        // bottle 없이 초기 저장
         Long postId = postService.createPost(userId, post);
 
-        // 응답 데이터 생성
         Map<String, Object> response = new HashMap<>();
-        response.put("postId", postId); // 생성된 postId 반환
-        response.put("pid", post.getPid()); // 고유 pid 포함
-        response.put("userId", userId); // 요청한 userId 포함
+        response.put("postId", postId);
+        response.put("pid", post.getPid());
+        response.put("userId", userId);
 
         return ResponseEntity.ok(response);
     }
 
-
     /**
-     * 게시물 업데이트
+     * 게시물 업데이트 (스토리와 bottle 추가)
      */
-
-    @PutMapping("/{postId}")
-    public ResponseEntity<Post> updatePost(
-            @RequestParam Long userId, // 수정하려는 사용자 ID
-            @PathVariable Long postId, // 수정하려는 게시물 ID
-            @RequestBody Post updatedPostData // 수정된 데이터
-    ) {
-        // 사용자와 postId로 게시물 업데이트
-        Post updatedPost = postService.updatePost(userId, postId, updatedPostData);
-        return ResponseEntity.ok(updatedPost); // 수정된 게시물 반환
+    @Operation(
+            summary = "게시물 업데이트 (최종화)",
+            description = "사용자 ID와 게시물 ID를 기반으로 게시물의 스토리와 bottle 정보를 업데이트합니다."
+    )
+    @PutMapping("/{postId}/finalize")
+    public ResponseEntity<Post> finalizePost(
+            @RequestParam Long userId,
+            @PathVariable Long postId,
+            @RequestBody Post updatedPostData) {
+        Post finalizedPost = postService.finalizePost(userId, postId, updatedPostData);
+        return ResponseEntity.ok(finalizedPost);
     }
-
 
     /**
      * 게시물 삭제
      */
+    @Operation(
+            summary = "게시물 삭제",
+            description = "특정 사용자의 게시물을 삭제합니다."
+    )
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
             @RequestParam Long userId, // userId를 요청에서 직접 받음
@@ -74,6 +77,13 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * 사용자별 게시물 조회
+     */
+    @Operation(
+            summary = "사용자별 게시물 조회",
+            description = "특정 사용자의 모든 게시물을 조회합니다."
+    )
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Post>> getPostsByUserId(@PathVariable Long userId) {
         try {
@@ -88,5 +98,4 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // 기타 예외 발생 시
         }
     }
-
 }

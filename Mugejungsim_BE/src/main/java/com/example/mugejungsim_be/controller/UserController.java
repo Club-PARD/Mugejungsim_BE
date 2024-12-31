@@ -1,12 +1,11 @@
 package com.example.mugejungsim_be.controller;
 
-import com.example.mugejungsim_be.entity.User;
 import com.example.mugejungsim_be.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +19,10 @@ public class UserController {
     /**
      * 사용자 저장 또는 업데이트 및 로그인 처리
      */
+    @Operation(
+            summary = "사용자 저장/업데이트 및 로그인",
+            description = "사용자 정보를 저장하거나 업데이트합니다. 사용자 이름과 제공자를 기반으로 처리됩니다."
+    )
     @PostMapping("/save")
     public ResponseEntity<Map<String, Object>> saveUser(@RequestBody Map<String, String> userData) {
         String name = userData.get("name");
@@ -39,6 +42,4 @@ public class UserController {
 
         return ResponseEntity.ok(response); // 사용자 정보 및 ID 반환
     }
-
-
 }

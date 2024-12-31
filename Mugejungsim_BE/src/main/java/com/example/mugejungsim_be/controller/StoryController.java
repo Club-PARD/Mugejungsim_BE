@@ -4,6 +4,7 @@ import com.example.mugejungsim_be.dto.StoryDto;
 import com.example.mugejungsim_be.S3Uploader;
 import com.example.mugejungsim_be.service.StoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ public class StoryController {
     /**
      * 스토리 생성
      */
+    @Operation(summary = "스토리 생성", description = "특정 게시물에 새로운 스토리를 생성합니다. 사진 업로드 및 JSON 데이터를 포함해야 합니다.")
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> createStory(
             @RequestParam Long postId,
@@ -69,9 +71,11 @@ public class StoryController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
+
     /**
      * 스토리 업데이트
      */
+    @Operation(summary = "스토리 업데이트", description = "특정 스토리의 내용을 업데이트합니다. 이미지 및 카테고리를 수정할 수 있습니다.")
     @PutMapping("/{storyId}")
     public ResponseEntity<?> updateStory(
             @PathVariable Long storyId,
@@ -80,21 +84,17 @@ public class StoryController {
             @RequestPart(required = false) MultipartFile image,
             @RequestParam(required = false) Integer orderIndex) {
         try {
-            // 이미지 처리: S3 업로드
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
                 imagePath = s3Uploader.upload(image, "stories");
             }
 
-            // 파라미터 검증 및 기본값 설정
             if (content != null && content.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Content cannot be an empty string.");
             }
 
-            // 스토리 업데이트
             Long updatedStoryId = storyService.updateStory(storyId, content, categories, imagePath, orderIndex);
 
-            // 성공 응답
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Story updated successfully");
             response.put("storyId", updatedStoryId);
@@ -102,13 +102,10 @@ public class StoryController {
             return ResponseEntity.ok(response);
 
         } catch (IOException e) {
-            // S3 업로드 실패
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file to S3: " + e.getMessage());
         } catch (RuntimeException e) {
-            // 기타 런타임 예외 처리
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error updating story: " + e.getMessage());
         } catch (Exception e) {
-            // 기타 예외 처리
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
@@ -116,6 +113,7 @@ public class StoryController {
     /**
      * 스토리 삭제
      */
+    @Operation(summary = "스토리 삭제", description = "특정 게시물에서 스토리를 삭제합니다.")
     @DeleteMapping("/{storyId}")
     public ResponseEntity<?> deleteStory(
             @RequestParam Long postId,
@@ -131,6 +129,7 @@ public class StoryController {
     /**
      * 특정 게시물의 스토리 목록 조회
      */
+    @Operation(summary = "스토리 목록 조회", description = "특정 게시물에 포함된 모든 스토리를 조회합니다.")
     @GetMapping("/{postId}/stories")
     public ResponseEntity<List<StoryDto>> getStoriesForPost(@PathVariable Long postId) {
         List<StoryDto> stories = storyService.getStoriesByPostId(postId);
@@ -140,6 +139,7 @@ public class StoryController {
     /**
      * 스토리 순서 업데이트
      */
+    @Operation(summary = "스토리 순서 업데이트", description = "특정 게시물의 스토리 순서를 변경합니다.")
     @PutMapping("/{postId}/update-order")
     public ResponseEntity<?> updateStoryOrder(
             @PathVariable Long postId,

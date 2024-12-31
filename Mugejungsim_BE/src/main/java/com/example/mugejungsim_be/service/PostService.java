@@ -19,21 +19,35 @@ public class PostService {
     private UserRepository userRepository;
 
     /**
-     * 새로운 게시물 생성
+     * 새로운 게시물 생성 (bottle 없이 초기 단계)
      */
     public Long createPost(Long userId, Post post) {
-        // userId로 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-        // 게시물에 사용자 설정
         post.setUser(user);
 
-        // 게시물 저장
-        Post savedPost = postRepository.save(post);
+        // 초기 상태로 bottle 없이 저장
+        return postRepository.save(post).getId();
+    }
 
-        // 생성된 게시물 ID 반환
-        return savedPost.getId();
+    /**
+     * 게시물 최종화 (스토리와 bottle 업데이트)
+     */
+    public Post finalizePost(Long userId, Long postId, Post updatedPostData) {
+        Post existingPost = postRepository.findById(postId)
+                .filter(post -> post.getUser().getId().equals(userId))
+                .orElseThrow(() -> new RuntimeException("Post not found or access denied"));
+
+        // bottle 및 스토리 업데이트
+        if (updatedPostData.getBottle() != null) {
+            existingPost.setBottle(updatedPostData.getBottle());
+        }
+        if (updatedPostData.getStories() != null) {
+            existingPost.setStories(updatedPostData.getStories());
+        }
+
+        return postRepository.save(existingPost);
     }
 
     /**
