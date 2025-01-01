@@ -20,12 +20,15 @@ public class StoryDto {
     private Long id;
     private String content;
     private List<String> categories; // 다중 카테고리 필드
-
+    private String imagePath; // 이미지 경로 추가
+    private String pid;
 
     public StoryDto(Story story) {
         this.id = story.getId();
         this.content = story.getContent();
-        this.categories = story.getCategories(); // 다중 카테고리 변환
+        this.categories = story.getCategories() != null ? story.getCategories() : List.of(); // 기본값 설정
+        this.imagePath = story.getImagePath() != null ? story.getImagePath() : ""; // 기본값 설정
+        this.pid = story.getPid();
     }
 }
 
