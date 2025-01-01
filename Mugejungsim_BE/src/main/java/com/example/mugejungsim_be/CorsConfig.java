@@ -30,7 +30,8 @@ public class CorsConfig implements WebMvcConfigurer {
                         "https://mugejunsim.store", // HTTPS 환경
                         "http://localhost",         // 로컬 환경
                         "http://localhost:8080",    // 로컬 환경에서 명시적인 포트 추가
-                        "http://192.168.*.*"        // 로컬 네트워크 대역 허용
+                        "http://192.168.*.*",
+                        "https://www.mugejunsim.store"// 로컬 네트워크 대역 허용
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS") // 허용할 HTTP 메서드
                 .allowedHeaders("*") // 모든 헤더 허용
