@@ -60,11 +60,12 @@ public class PostController {
             description = "특정 사용자의 게시물을 삭제합니다."
     )
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(
+    public ResponseEntity<String> deletePost(
             @RequestParam Long userId, // userId를 요청에서 직접 받음
             @PathVariable Long postId) {
         postService.deletePost(userId, postId);
-        return ResponseEntity.noContent().build();
+        // 204 대신 200 OK와 메시지 반환
+        return ResponseEntity.ok("Post deleted successfully");
     }
 
     @Operation(
