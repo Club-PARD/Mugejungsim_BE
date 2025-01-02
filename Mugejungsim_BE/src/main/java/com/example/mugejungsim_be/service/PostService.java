@@ -22,9 +22,6 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * 새로운 게시물 생성 (bottle 없이 초기 단계)
-     */
 
     public Long createPost(Long userId, Post post) {
         User user = userRepository.findById(userId)
@@ -75,10 +72,6 @@ public class PostService {
     }
 
 
-    /**
-     * 사용자의 모든 게시물 조회
-     */
-
     public List<Post> getPostsByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
@@ -86,27 +79,7 @@ public class PostService {
         return postRepository.findByUser(user);
     }
 
-    /**
-     * 게시물 업데이트
-     */
-    public Post updatePost(Long userId, Long postId, Post updatedPostData) {
-        Post post = postRepository.findById(postId)
-                .filter(existingPost -> existingPost.getUser().getId().equals(userId)) // 권한 확인
-                .orElseThrow(() -> new RuntimeException("Post not found or access denied"));
 
-        post.setTitle(updatedPostData.getTitle());
-        post.setStartDate(updatedPostData.getStartDate());
-        post.setEndDate(updatedPostData.getEndDate());
-        post.setLocation(updatedPostData.getLocation());
-        post.setCompanion(updatedPostData.getCompanion());
-        post.setBottle(updatedPostData.getBottle());
-
-        return postRepository.save(post);
-    }
-
-    /**
-     * 게시물 삭제
-     */
     public void deletePost(Long userId, Long postId) {
         Post post = postRepository.findById(postId)
                 .filter(existingPost -> existingPost.getUser().getId().equals(userId)) // 권한 확인

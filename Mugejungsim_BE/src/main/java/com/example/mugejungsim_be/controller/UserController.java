@@ -16,9 +16,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /**
-     * 사용자 저장 또는 업데이트 및 로그인 처리
-     */
     @Operation(
             summary = "사용자 저장/업데이트 및 로그인",
             description = "사용자 정보를 저장하거나 업데이트합니다. 사용자 이름과 제공자를 기반으로 처리됩니다."

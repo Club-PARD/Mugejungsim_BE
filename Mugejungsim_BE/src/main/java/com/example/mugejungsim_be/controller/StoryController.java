@@ -63,8 +63,6 @@ public class StoryController {
         }
     }
 
-
-
     @Operation(summary = "스토리 업데이트", description = "특정 스토리의 내용을 업데이트합니다. 이미지 및 카테고리를 수정할 수 있습니다.")
     @PutMapping("/{storyId}")
     public ResponseEntity<?> updateStory(
@@ -123,7 +121,6 @@ public class StoryController {
     /**
      * 특정 게시물의 스토리 목록 조회
      */
-
     @Operation(summary = "스토리 목록 조회", description = "특정 게시물에 포함된 모든 스토리를 조회합니다.")
     @GetMapping("/{postId}/stories")
     public ResponseEntity<List<StoryDto>> getStoriesForPost(@PathVariable Long postId) {

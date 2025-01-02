@@ -27,7 +27,6 @@ public class User {
     @JsonIgnore
     private List<Post> posts = new ArrayList<>(); // 사용자가 작성한 게시물
 
-    // Story와의 직접적인 관계 제거 (Post를 통해 간접적으로 참조 가능)
 
     public User(String name, String provider) {
         this.name = name;

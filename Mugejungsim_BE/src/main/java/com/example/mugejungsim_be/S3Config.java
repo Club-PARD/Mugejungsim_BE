@@ -1,4 +1,4 @@
-package com.example.mugejungsim_be.config;
+package com.example.mugejungsim_be;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

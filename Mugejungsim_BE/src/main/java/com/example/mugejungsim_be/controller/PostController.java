@@ -20,9 +20,6 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    /**
-     * 게시물 생성 (초기 단계 - bottle 없이)
-     */
     @Operation(
             summary = "게시물 생성",
             description = "사용자 ID를 기반으로 게시물을 생성합니다. 초기 단계에서는 bottle 값 없이 저장됩니다."
@@ -57,9 +54,7 @@ public class PostController {
         Post finalizedPost = postService.finalizePost(postId, updatedPostData);
         return ResponseEntity.ok(finalizedPost);
     }
-    /**
-     * 게시물 삭제
-     */
+
     @Operation(
             summary = "게시물 삭제",
             description = "특정 사용자의 게시물을 삭제합니다."
@@ -72,9 +67,6 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 사용자별 게시물 조회
-     */
     @Operation(
             summary = "사용자별 게시물 조회",
             description = "특정 사용자의 모든 게시물을 조회합니다."

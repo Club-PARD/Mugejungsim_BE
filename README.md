@@ -3,6 +3,14 @@
 
 ---
 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/c38a4263-7f92-45b0-a502-00273417cbad" width="200" style="border-radius: 15px; margin-bottom: 20px;">
+  <h1 style="font-size: 2.5rem;">Moments</h1>
+  <p style="font-size: 1.3rem; color: #555;">여행의 순간을 담아, 감정으로 물들이다</p>
+</div>
+
+---
+
 # **Mugejungsim BE (Back-End)** 🛠️
 
 ---
