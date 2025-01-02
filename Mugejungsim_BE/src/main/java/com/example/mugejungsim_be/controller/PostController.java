@@ -65,9 +65,9 @@ public class PostController {
             @PathVariable Long postId) {
         postService.deletePost(userId, postId);
         // 204 대신 200 OK와 메시지 반환
-        return ResponseEntity.ok("Post deleted successfully");
+        return ResponseEntity
+                .ok("Post deleted successfully");
     }
-
     @Operation(
             summary = "사용자별 게시물 조회",
             description = "특정 사용자의 모든 게시물을 조회합니다."
