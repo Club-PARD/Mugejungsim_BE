@@ -1,7 +1,9 @@
-# **Mugejungsim**  
-여기는 팀 " 무게중심"  서버입니다.
-저희의 서비스명은 "모먼츠"입니다
-
+<div align="center">
+  <h1>Mugejungsim</h1>
+  <p>여기는 팀 "무게중심" 서버입니다.</p>
+  <h2>모먼츠</h2>
+  <a href="https://github.com/Club-PARD/Mugejungsim_FE" style="font-size: 1.2rem; color: #007BFF; text-decoration: none;">▶️ 프로덕트 설명 페이지로 이동하기</a>
+</div>
 ---
 
 <div align="center">
@@ -12,8 +14,7 @@
 
 ---
 
-# **Mugejungsim BE (Back-End)** 🛠️
-# **모먼츠(Moments) ** 🛠️
+# **Back-End** 🛠️
 
 ---
 
@@ -144,12 +145,7 @@
 | id (PK)          |                   | id (PK)          |
 | name             |                   | pid              |
 | provider         |                   | title            |
-|                  |                   | bottle           |
-|                  |                   | startDate        |
-|                  |                   | endDate          |
-|                  |                   | location         |
-|                  |                   | companion        |
-|------------------|                   | user_id (FK)     |
+|------------------|                   |------------------|
 | posts [1..*]     |                   | stories [1..*]   |
 +------------------+                   +------------------+
                                            |
